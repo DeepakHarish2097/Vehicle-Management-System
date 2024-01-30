@@ -23,7 +23,7 @@ class Employee(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(max_length=100)
     employee_id = models.CharField(max_length=100, unique=True)
     is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=True)
     is_superuser = models.BooleanField(default=False)
     contact = models.CharField(max_length=255)
     address = models.TextField()

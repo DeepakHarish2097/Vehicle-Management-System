@@ -50,12 +50,21 @@
 
         <ul class="menu-inner py-1">
           
+          {% if request.user.is_superuser %}
+            <li class="menu-item" id="menu-staff">
+              <a href="{% url "staff_list" %}" class="menu-link">
+                <i class="menu-icon tf-icons bx bxs-user-detail"></i>
+                <div data-i18n="Staff">Staff</div>
+              </a>
+            </li>
+          {% endif %}
           <li class="menu-item" id="menu-vehicle">
             <a href="{% url "home" %}" class="menu-link">
               <i class="menu-icon tf-icons bx bxs-car"></i>
               <div data-i18n="Vehicle">Vehicle</div>
             </a>
           </li>
+
           <li class="menu-item" id="menu-route">
             <a href="{% url "route_list" %}" class="menu-link">
               <i class="menu-icon tf-icons bx bxs-directions"></i>
@@ -120,7 +129,9 @@
               <form action="{% url "logout" %}" method="post">
                 <div class="modal-body">
                   {% csrf_token %}
-                  <h4>Are you sure you want to log out?</h4>
+                  <div class="alert alert-danger" role="alert">
+                    <h5>Are you sure you want to log out?</h5>
+                  </div>
                 </div>
                 <div class="modal-footer">
                   <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">

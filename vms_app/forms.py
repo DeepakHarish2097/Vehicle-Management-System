@@ -1,12 +1,13 @@
 from django import forms
 from .models import Employee, Vehicle, Route, Productivity
+from django.contrib.auth.forms import UserCreationForm
 
 
 class VehicleForm(forms.ModelForm):
     
     class Meta:
         model = Vehicle
-        fields = ("vehicle_number", "is_active", "is_working", "supervisor", "remark")
+        fields = ("vehicle_number", "supervisor", "remark")
 
     def __init__(self, *args, **kwargs):
         super(VehicleForm, self).__init__(*args, **kwargs)
@@ -19,4 +20,15 @@ class RouteForm(forms.ModelForm):
     
     class Meta:
         model = Route
-        fields = ("area", "block", "street", "is_active", "estimation")
+        fields = ("area", "block", "street", "estimation")
+
+
+class EmployeeRegistrationForm(UserCreationForm):
+    class Meta:
+        model = Employee
+        fields = ['employee_id', 'name', 'password1', 'password2', 'contact', 'address', 'remark']
+
+    def __init__(self, *args, **kwargs):
+        super(EmployeeRegistrationForm, self).__init__(*args, **kwargs)
+        self.fields['address'].widget.attrs.update({'rows': '3'})
+        self.fields['remark'].widget.attrs.update({'rows': '3'})
