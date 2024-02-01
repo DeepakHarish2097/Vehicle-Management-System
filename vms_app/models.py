@@ -1,6 +1,7 @@
 import uuid
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.utils import timezone
 
 
 class EmployeeManager(BaseUserManager):
@@ -70,9 +71,12 @@ class Vehicle(models.Model):
 
 class Productivity(models.Model):
     vehicle = models.ForeignKey(Vehicle, on_delete=models.SET_NULL, null=True, blank=True)
-    start = models.DateTimeField(null=True, blank=True)
-    end = models.DateTimeField()
+    start = models.DateTimeField(default=timezone.now)
+    end = models.DateTimeField(null=True, blank=True)
     routes = models.ManyToManyField(Route, blank=True)
-    estimation = models.IntegerField()
+    estimation = models.IntegerField(null=True, blank=True)
     driver = models.CharField(max_length=500, default='Vendor')
+    day_production = models.IntegerField(null=True, blank=True)
     
+    def __str__(self) -> str:
+        return f"[{self.vehicle}] {self.driver}"

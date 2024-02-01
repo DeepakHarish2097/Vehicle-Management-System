@@ -13,7 +13,7 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
 
 
-    # App View Urls
+    # ------------------- App View Urls -------------------
 
     # Vehicle Urls
     path('', views.home, name='home'),
@@ -34,5 +34,11 @@ urlpatterns = [
     path('add-staff/', views.create_staff, name='create_staff'),
     path('deactivate-staff/<str:id>/', views.deactivate_staff, name='deactivate_staff'),
     path('activate-staff/<str:id>/', views.activate_staff, name='activate_staff'),
+
+    # Productivity Urls
+    path('productivity-list/', views.productivity_list, name='productivity_list'),
+    path('add-productivity/', views.add_productivity, name='add_productivity'),
+    path('edit-productivity/<int:id>/', views.edit_productivity, name='edit_productivity'),
+    path('end-productivity/<int:id>/', views.end_productivity, name='end_productivity'),
 ]
 

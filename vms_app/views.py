@@ -2,9 +2,10 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import Employee, Vehicle, Route, Productivity
-from .forms import VehicleForm, RouteForm, EmployeeRegistrationForm
+from .forms import VehicleForm, RouteForm, EmployeeRegistrationForm, ProductivityForm
 from .decorators import superuser_required, active_required
 from django.contrib.auth import logout
+from django.utils import timezone
 
 
 @login_required(login_url='login')
@@ -17,7 +18,7 @@ def not_authorised(request):
     return render(request, 'registration/inactive.html')
 
 
-# ----- Vehicle Views
+# ------------------- Vehicle Views -------------------
 @login_required(login_url='login')
 @active_required
 def home(request):
@@ -93,7 +94,7 @@ def activate_vehicle(request, id: int):
         return redirect('home')
 
 
-# ----- Route Views
+# ------------------- Route Views -------------------
 @login_required(login_url='login')
 @active_required
 def route_list(request):
@@ -169,7 +170,7 @@ def activate_route(request, id: int):
         return redirect('route_list')
 
 
-# ----- Staff Views
+# ------------------- Staff Views -------------------
 @login_required(login_url='login')
 @active_required
 @superuser_required
@@ -222,3 +223,78 @@ def activate_staff(request, id:str):
         employee.is_active = True
         employee.save()
         return redirect('staff_list')
+
+
+# ------------------- Productivity Views -------------------
+@login_required(login_url='login')
+@active_required
+def productivity_list(request):
+    productivity = Productivity.objects.all()
+    context = {
+        "menu": "menu-productivity",
+        "productivity_list": productivity
+    }
+    return render(request, 'vms_app/productivity_list.html', context)
+
+
+@login_required(login_url='login')
+@active_required
+def add_productivity(request):
+    form = ProductivityForm()
+
+    if request.method == "POST":
+        form = ProductivityForm(request.POST)
+        if form.is_valid():
+            clean_data = form.cleaned_data
+            productivity = form.save(commit=False)
+            total_estimation = 0
+            for route in clean_data['routes']:
+                total_estimation += route.estimation
+            productivity.estimation = total_estimation
+            productivity.save()
+            productivity.routes.set(clean_data['routes'])
+            return redirect('productivity_list')
+
+    context = {
+        "form": form,
+        "menu": "menu-productivity",
+        "form_title": "Add Productivity",
+    }
+    return render(request, 'vms_app/forms.html', context)
+
+
+@login_required(login_url='login')
+@active_required
+def edit_productivity(request, id: int):
+    productivity = Productivity.objects.get(pk=id)
+    form = ProductivityForm(instance=productivity)
+
+    if request.method == "POST":
+        form = ProductivityForm(request.POST, instance=productivity)
+        if form.is_valid():
+            clean_data = form.cleaned_data
+            productivity = form.save(commit=False)
+            total_estimation = 0
+            for route in clean_data['routes']:
+                total_estimation += route.estimation
+            productivity.estimation = total_estimation
+            productivity.save()
+            productivity.routes.set(clean_data['routes'])
+            return redirect('productivity_list')
+
+    context = {
+        "form": form,
+        "menu": "menu-productivity",
+        "form_title": "Edit Productivity",
+    }
+    return render(request, 'vms_app/forms.html', context)
+
+
+@login_required(login_url='login')
+@active_required
+def end_productivity(request, id: int):
+    productivity = Productivity.objects.get(pk=id)
+    productivity.end = timezone.now()
+    productivity.day_production = round((timezone.now()-productivity.start).total_seconds()/60)
+    productivity.save()
+    return redirect('productivity_list')

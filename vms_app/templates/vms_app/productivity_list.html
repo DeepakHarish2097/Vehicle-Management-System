@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h4 class="fw-bold py-3 mb-4">Productivities</h4>
+
+<div class="row">
+    <div class="col">
+        <a href="{% url "add_productivity" %}" class="btn btn-primary">
+            <span class="tf-icons bx bx-list-plus"></span> Add Productivity
+        </a>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="table-responsive text-nowrap mt-2">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Vehicle No.</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Driver</th>
+                    <th>Estimation</th>
+                    <th>Day Production</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody class="table-border-bottom-0">
+                {% for productivity in productivity_list %}
+                <tr>
+                    <td>{{productivity.vehicle}}</td>
+                    <td>{{productivity.start}}</td>
+                    <td>{{productivity.end}}</td>
+                    <td>{{productivity.driver }}</td>
+                    <td>{{productivity.estimation }}</td>
+                    <td>{{productivity.day_production }}</td>
+                    <td>
+                        {% if not productivity.end %}
+                        <div class="dropdown">
+                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                              <i class="bx bx-dots-vertical-rounded"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a href="{% url "edit_productivity" productivity.id %}" class="dropdown-item">
+                                    <i class="bx bxs-pencil"></i>&nbsp;&nbsp;Edit
+                                </a>
+                                <a href="{% url "end_productivity" productivity.id %}" class="dropdown-item">
+                                    <i class="bx bxs-stopwatch"></i>&nbsp;&nbsp;End Production
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock content %}

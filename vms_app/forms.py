@@ -3,8 +3,11 @@ from .models import Employee, Vehicle, Route, Productivity
 from django.contrib.auth.forms import UserCreationForm
 
 
+class DateTimeInput(forms.DateTimeInput):
+    input_type = "datetime-local"
+
+
 class VehicleForm(forms.ModelForm):
-    
     class Meta:
         model = Vehicle
         fields = ("vehicle_number", "supervisor", "remark")
@@ -17,7 +20,6 @@ class VehicleForm(forms.ModelForm):
 
 
 class RouteForm(forms.ModelForm):
-    
     class Meta:
         model = Route
         fields = ("area", "block", "street", "estimation")
@@ -32,3 +34,12 @@ class EmployeeRegistrationForm(UserCreationForm):
         super(EmployeeRegistrationForm, self).__init__(*args, **kwargs)
         self.fields['address'].widget.attrs.update({'rows': '3'})
         self.fields['remark'].widget.attrs.update({'rows': '3'})
+
+
+class ProductivityForm(forms.ModelForm):
+    class Meta:
+        model = Productivity
+        fields = ['vehicle', 'start', 'routes', 'driver']
+        widgets = {
+            'start': DateTimeInput()
+        }
