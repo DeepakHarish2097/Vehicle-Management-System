@@ -4,10 +4,27 @@
 <h4 class="fw-bold py-3 mb-4">Productivities</h4>
 
 <div class="row">
-    <div class="col">
+    <div class="col-auto">
         <a href="{% url "add_productivity" %}" class="btn btn-primary">
-            <span class="tf-icons bx bx-list-plus"></span> Add Productivity
+            <span class="tf-icons bx bx-list-plus"></span> Start Vehicle
         </a>
+    </div>
+    <div class="col-auto">
+        <button type="button" class="btn btn-primary btn-icon dropdown-toggle hide-arrow" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bx bx-filter"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-start">
+            <li><h6 class="dropdown-header">By Production</h6></li>
+            <li><a href="{% url "productivity_list" %}?type=production&query=highest" class="dropdown-item">High Productive(Today)</a></li>
+            <li><a href="{% url "productivity_list" %}?type=production&query=least" class="dropdown-item">Least Productive(Today)</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><h6 class="dropdown-header">By Estimation</h6></li>
+            <li><a href="{% url "productivity_list" %}?type=estimation&query=highest" class="dropdown-item">High Productive(Today)</a></li>
+            <li><a href="{% url "productivity_list" %}?type=estimation&query=least" class="dropdown-item">Least Productive(Today)</a></li>
+        </ul>
+    </div>
+    <div class="col-auto">
+        <a href="{% url "productivity_week_report" %}" class="btn btn-dark btn-icon"><i class='bx bxs-report'></i></a>
     </div>
 </div>
 
@@ -21,7 +38,7 @@
                     <th>End</th>
                     <th>Driver</th>
                     <th>Estimation</th>
-                    <th>Day Production</th>
+                    <th>Production</th>
                     <th></th>
                 </tr>
             </thead>
@@ -45,7 +62,7 @@
                                     <i class="bx bxs-pencil"></i>&nbsp;&nbsp;Edit
                                 </a>
                                 <a href="{% url "end_productivity" productivity.id %}" class="dropdown-item">
-                                    <i class="bx bxs-stopwatch"></i>&nbsp;&nbsp;End Production
+                                    <i class="bx bxs-stopwatch"></i>&nbsp;&nbsp;Stop Vehicle
                                 </a>
                             </div>
                         </div>

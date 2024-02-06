@@ -43,3 +43,8 @@ class ProductivityForm(forms.ModelForm):
         widgets = {
             'start': DateTimeInput()
         }
+
+
+class ProductivityReportForm(forms.Form):
+    start = forms.DateField()
+    end = forms.DateField()
