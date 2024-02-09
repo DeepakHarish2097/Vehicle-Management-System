@@ -11,6 +11,8 @@ urlpatterns = [
     # Auth Urls
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('change-password/', views.change_password, name='change_password'),
+    path('password-change-done/', views.password_change_done, name='password_change_done'),
 
 
     # ------------------- App View Urls -------------------
@@ -34,6 +36,7 @@ urlpatterns = [
     path('add-staff/', views.create_staff, name='create_staff'),
     path('deactivate-staff/<str:id>/', views.deactivate_staff, name='deactivate_staff'),
     path('activate-staff/<str:id>/', views.activate_staff, name='activate_staff'),
+    path('edit-user/', views.edit_user, name='edit_user'),
 
     # Productivity Urls
     path('productivity-list/', views.productivity_list, name='productivity_list'),

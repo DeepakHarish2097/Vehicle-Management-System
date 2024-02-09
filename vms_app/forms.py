@@ -22,7 +22,7 @@ class VehicleForm(forms.ModelForm):
 class RouteForm(forms.ModelForm):
     class Meta:
         model = Route
-        fields = ("area", "block", "street", "estimation")
+        fields = ("area", "block", "street", "supervisor", "estimation")
 
 
 class EmployeeRegistrationForm(UserCreationForm):
@@ -32,6 +32,17 @@ class EmployeeRegistrationForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super(EmployeeRegistrationForm, self).__init__(*args, **kwargs)
+        self.fields['address'].widget.attrs.update({'rows': '3'})
+        self.fields['remark'].widget.attrs.update({'rows': '3'})
+
+
+class EmployeeEditForm(forms.ModelForm):
+    class Meta:
+        model = Employee
+        fields = ['name', 'image', 'contact', 'address', 'remark']
+
+    def __init__(self, *args, **kwargs):
+        super(EmployeeEditForm, self).__init__(*args, **kwargs)
         self.fields['address'].widget.attrs.update({'rows': '3'})
         self.fields['remark'].widget.attrs.update({'rows': '3'})
 

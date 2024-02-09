@@ -20,13 +20,13 @@
                     <th>Employee Id</th>
                     <th>Contact</th>
                     <th>Is Active</th>
-                    <th>Is Superuser</th>
+                    {% comment %} <th>Is Superuser</th> {% endcomment %}
                     <th></th>
                 </tr>
             </thead>
             <tbody class="table-border-bottom-0">
                 {% for employee in employees %}
-                    <tr>
+                    <tr {% if employee.is_superuser %}class="table-success"{% endif %}>
                         <td>{{employee.name}}</td>
                         <td>{{employee.employee_id}}</td>
                         <td>{{employee.contact}}</td>
@@ -37,13 +37,13 @@
                             <span class="badge rounded-pill bg-label-danger">In Active</span>
                             {% endif %}
                         </td>
-                        <td>
+                        {% comment %} <td>
                             {% if employee.is_superuser %}
                             <span class="badge rounded-pill bg-label-primary">Superuser</span>
                             {% else %}
                             <span class="badge rounded-pill bg-label-danger">Staff</span>
                             {% endif %}
-                        </td>
+                        </td> {% endcomment %}
                         <td>
                             <div class="dropdown">
                                 <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">

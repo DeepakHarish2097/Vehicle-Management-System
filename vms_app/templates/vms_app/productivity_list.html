@@ -21,8 +21,15 @@
             <li><h6 class="dropdown-header">By Estimation</h6></li>
             <li><a href="{% url "productivity_list" %}?type=estimation&query=highest" class="dropdown-item">High Productive(Today)</a></li>
             <li><a href="{% url "productivity_list" %}?type=estimation&query=least" class="dropdown-item">Least Productive(Today)</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a href="{% url "productivity_list" %}?type=vehicle&query=unused" class="dropdown-item">Unused Vehicle(Today)</a></li>
         </ul>
     </div>
+    {% if type %}
+        <div class="col-auto">
+            <a href="{% url "productivity_list" %}" class="btn btn-icon btn-danger"><i class='bx bx-x'></i></a>
+        </div>
+    {% endif %}
     <div class="col-auto">
         <a href="{% url "productivity_week_report" %}" class="btn btn-dark btn-icon"><i class='bx bxs-report'></i></a>
     </div>
@@ -31,46 +38,63 @@
 <div class="card mt-4">
     <div class="table-responsive text-nowrap mt-2">
         <table class="table">
-            <thead>
-                <tr>
-                    <th>Vehicle No.</th>
-                    <th>Start</th>
-                    <th>End</th>
-                    <th>Driver</th>
-                    <th>Estimation</th>
-                    <th>Production</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody class="table-border-bottom-0">
-                {% for productivity in productivity_list %}
-                <tr>
-                    <td>{{productivity.vehicle}}</td>
-                    <td>{{productivity.start}}</td>
-                    <td>{{productivity.end}}</td>
-                    <td>{{productivity.driver }}</td>
-                    <td>{{productivity.estimation }}</td>
-                    <td>{{productivity.day_production }}</td>
-                    <td>
-                        {% if not productivity.end %}
-                        <div class="dropdown">
-                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                              <i class="bx bx-dots-vertical-rounded"></i>
-                            </button>
-                            <div class="dropdown-menu">
-                                <a href="{% url "edit_productivity" productivity.id %}" class="dropdown-item">
-                                    <i class="bx bxs-pencil"></i>&nbsp;&nbsp;Edit
-                                </a>
-                                <a href="{% url "end_productivity" productivity.id %}" class="dropdown-item">
-                                    <i class="bx bxs-stopwatch"></i>&nbsp;&nbsp;Stop Vehicle
-                                </a>
+            {% if type == "vehicle" %}
+                <thead>
+                    <tr>
+                        <th>Vehicle No.</th>
+                        <th>Supervisor</th>
+                    </tr>
+                </thead>
+                <tbody class="table-border-bottom-0">
+                    {% for vehicle in productivity_list %}
+                    <tr>
+                        <td>{{vehicle.vehicle_number}}</td>
+                        <td>{{vehicle.supervisor}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            {% else %}
+                <thead>
+                    <tr>
+                        <th>Vehicle No.</th>
+                        <th>Start</th>
+                        <th>End</th>
+                        <th>Driver</th>
+                        <th>Estimation</th>
+                        <th>Production</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody class="table-border-bottom-0">
+                    {% for productivity in productivity_list %}
+                    <tr>
+                        <td>{{productivity.vehicle}}</td>
+                        <td>{{productivity.start}}</td>
+                        <td>{{productivity.end}}</td>
+                        <td>{{productivity.driver }}</td>
+                        <td>{{productivity.estimation }}</td>
+                        <td>{{productivity.day_production }}</td>
+                        <td>
+                            {% if not productivity.end %}
+                            <div class="dropdown">
+                                <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                <i class="bx bx-dots-vertical-rounded"></i>
+                                </button>
+                                <div class="dropdown-menu">
+                                    <a href="{% url "edit_productivity" productivity.id %}" class="dropdown-item">
+                                        <i class="bx bxs-pencil"></i>&nbsp;&nbsp;Edit
+                                    </a>
+                                    <a href="{% url "end_productivity" productivity.id %}" class="dropdown-item">
+                                        <i class="bx bxs-stopwatch"></i>&nbsp;&nbsp;Stop Vehicle
+                                    </a>
+                                </div>
                             </div>
-                        </div>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            {% endif %}
         </table>
     </div>
 </div>

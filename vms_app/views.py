@@ -2,12 +2,13 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import Employee, Vehicle, Route, Productivity
-from .forms import VehicleForm, RouteForm, EmployeeRegistrationForm, ProductivityForm, ProductivityReportForm
+from .forms import VehicleForm, RouteForm, EmployeeRegistrationForm, ProductivityForm, ProductivityReportForm, EmployeeEditForm
 from .decorators import superuser_required, active_required
 from django.contrib.auth import logout
 from django.utils import timezone
 from openpyxl import Workbook
 from django.http import HttpResponse
+from django.contrib.auth.forms import PasswordChangeForm
 
 
 @login_required(login_url='login')
@@ -30,7 +31,7 @@ def home(request):
         "working": {"is_working": True},
         "not_working": {"is_working": False},
     }
-    vehicles = Vehicle.objects.all()
+    vehicles = Vehicle.objects.all().order_by('-is_active', '-is_working')
     query = request.GET.get("query", None)
     if query and query in queries:
         vehicles = Vehicle.objects.filter(**queries[query])
@@ -110,7 +111,7 @@ def activate_vehicle(request, id: int):
 @login_required(login_url='login')
 @active_required
 def route_list(request):
-    routes = Route.objects.all()
+    routes = Route.objects.all().order_by('-is_active')
     context = {
         "routes": routes,
         "menu": "menu-route"
@@ -237,6 +238,42 @@ def activate_staff(request, id:str):
         return redirect('staff_list')
 
 
+@login_required(login_url='login')
+@active_required
+def password_change_done(request):
+    return render(request, 'registration/password_change_done.html')
+
+
+@login_required(login_url='login')
+@active_required
+def change_password(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(user=request.user, data=request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('change_password')
+    else:
+        form = PasswordChangeForm(user=request.user)
+    return render(request, 'registration/password_change.html', {'form': form})
+
+
+@login_required(login_url='login')
+@active_required
+def edit_user(request):
+    form = EmployeeEditForm(instance=request.user)
+    if request.method == 'POST':
+        form = EmployeeEditForm(instance=request.user, data=request.POST, files=request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+    context = {
+        'form': form,
+        "form_title": "Edit User",
+        "menu": "menu-staff",
+    }
+    return render(request, 'vms_app/edit_profile.html', context)
+
+
 # ------------------- Productivity Views -------------------
 @login_required(login_url='login')
 @active_required
@@ -252,15 +289,22 @@ def productivity_list(request):
                 productivity = today_productivity.order_by('-day_production')
             else:
                 productivity = today_productivity.order_by('day_production')
-        else:
+        elif type == "estimation":
             if query == "highest":
                 productivity = today_productivity.order_by('-estimation')
             else:
                 productivity = today_productivity.order_by('estimation')
+        else:
+            if query == "unused":
+                all_vehicles = Vehicle.objects.filter(is_active=True)
+                prod_vehicles = Vehicle.objects.filter(vehicle_productivity_set__start__date__gte=timezone.now().date())
+                productivity = [i for i in all_vehicles if i not in prod_vehicles]
+                print(productivity)
             
     context = {
         "menu": "menu-productivity",
-        "productivity_list": productivity
+        "productivity_list": productivity,
+        "type": type,
     }
     return render(request, 'vms_app/productivity_list.html', context)
 
@@ -280,6 +324,9 @@ def add_productivity(request):
                 total_estimation += route.estimation
             productivity.estimation = total_estimation
             productivity.save()
+            vehicle = productivity.vehicle
+            vehicle.is_working = True
+            vehicle.save()
             productivity.routes.set(clean_data['routes'])
             return redirect('productivity_list')
 
@@ -295,6 +342,9 @@ def add_productivity(request):
 @active_required
 def edit_productivity(request, id: int):
     productivity = Productivity.objects.get(pk=id)
+    vehicle = productivity.vehicle
+    vehicle.is_working = False
+    vehicle.save()
     form = ProductivityForm(instance=productivity)
 
     if request.method == "POST":
@@ -307,6 +357,9 @@ def edit_productivity(request, id: int):
                 total_estimation += route.estimation
             productivity.estimation = total_estimation
             productivity.save()
+            vehicle = productivity.vehicle
+            vehicle.is_working = True
+            vehicle.save()
             productivity.routes.set(clean_data['routes'])
             return redirect('productivity_list')
 
@@ -325,6 +378,9 @@ def end_productivity(request, id: int):
     productivity.end = timezone.now()
     productivity.day_production = round((timezone.now()-productivity.start).total_seconds()/60)
     productivity.save()
+    vehicle = productivity.vehicle
+    vehicle.is_working = False
+    vehicle.save()
     return redirect('productivity_list')
 
 
