@@ -4,10 +4,19 @@
 <h4 class="fw-bold py-3 mb-4">Routes</h4>
 
 <div class="row">
-    <div class="col">
+    <div class="col-auto">
         <a href="{% url "add_route" %}" class="btn btn-primary">
             <span class="tf-icons bx bx-list-plus"></span> Add Route
         </a>
+    </div>
+    <div class="col-auto">
+        <button type="button" class="btn btn-primary btn-icon dropdown-toggle hide-arrow" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bx bx-filter"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-start" style="">
+            <li><a class="dropdown-item" href="{% url "route_list" %}">Active</a></li>
+            <li><a class="dropdown-item" href="{% url "route_list" %}?query=in_active">In Active</a></li>
+        </ul>
     </div>
 </div>
 
@@ -20,7 +29,6 @@
                     <th>Block</th>
                     <th>Street</th>
                     <th>Supervisor</th>
-                    <th>Is Active</th>
                     <th>Estimation</th>
                     <th></th>
                 </tr>
@@ -32,13 +40,6 @@
                     <td>{{route.block}}</td>
                     <td>{{route.street}}</td>
                     <td>{{route.supervisor}}</td>
-                    <td>
-                        {% if route.is_active %}
-                        <span class="badge rounded-pill bg-label-primary">Active</span>
-                        {% else %}
-                        <span class="badge rounded-pill bg-label-danger">In Active</span>
-                        {% endif %}
-                    </td>
                     <td>{{route.estimation}}</td>
                     <td>
                         {% if request.user.is_superuser %}

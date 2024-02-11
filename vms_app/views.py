@@ -28,10 +28,10 @@ def home(request):
     queries = {
         "active": {"is_active": True},
         "in_active": {"is_active": False},
-        "working": {"is_working": True},
-        "not_working": {"is_working": False},
+        "working": {"is_working": True, "is_active": True},
+        "not_working": {"is_working": False, "is_active": True},
     }
-    vehicles = Vehicle.objects.all().order_by('-is_active', '-is_working')
+    vehicles = Vehicle.objects.filter(**queries["active"])
     query = request.GET.get("query", None)
     if query and query in queries:
         vehicles = Vehicle.objects.filter(**queries[query])
@@ -111,7 +111,8 @@ def activate_vehicle(request, id: int):
 @login_required(login_url='login')
 @active_required
 def route_list(request):
-    routes = Route.objects.all().order_by('-is_active')
+    serch_active = False if request.GET.get('query', None) == "in_active" else True
+    routes = Route.objects.filter(is_active=serch_active)
     context = {
         "routes": routes,
         "menu": "menu-route"
@@ -188,8 +189,8 @@ def activate_route(request, id: int):
 @active_required
 @superuser_required
 def staff_list(request):
-    # check_superuser(request)
-    employees = Employee.objects.all()
+    serch_active = False if request.GET.get('query', None) == "in_active" else True
+    employees = Employee.objects.filter(is_active=serch_active).order_by("-is_superuser")
     context = {
         "employees": employees,
         "menu": "menu-staff"
@@ -278,7 +279,7 @@ def edit_user(request):
 @login_required(login_url='login')
 @active_required
 def productivity_list(request):
-    productivity = Productivity.objects.all()
+    productivity = Productivity.objects.filter(start__date=timezone.now().date())
     query = request.GET.get("query", None)
     type = request.GET.get("type", None)
 
@@ -287,8 +288,10 @@ def productivity_list(request):
         if type == "production":
             if query == "highest":
                 productivity = today_productivity.order_by('-day_production')
-            else:
+            elif query == "least":
                 productivity = today_productivity.order_by('day_production')
+            else:
+                productivity = Productivity.objects.all()
         elif type == "estimation":
             if query == "highest":
                 productivity = today_productivity.order_by('-estimation')
@@ -299,7 +302,6 @@ def productivity_list(request):
                 all_vehicles = Vehicle.objects.filter(is_active=True)
                 prod_vehicles = Vehicle.objects.filter(vehicle_productivity_set__start__date__gte=timezone.now().date())
                 productivity = [i for i in all_vehicles if i not in prod_vehicles]
-                print(productivity)
             
     context = {
         "menu": "menu-productivity",

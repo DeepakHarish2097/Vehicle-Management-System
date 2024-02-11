@@ -23,6 +23,7 @@
             <li><a href="{% url "productivity_list" %}?type=estimation&query=least" class="dropdown-item">Least Productive(Today)</a></li>
             <li><hr class="dropdown-divider"></li>
             <li><a href="{% url "productivity_list" %}?type=vehicle&query=unused" class="dropdown-item">Unused Vehicle(Today)</a></li>
+            <li><a href="{% url "productivity_list" %}?type=production&query=all" class="dropdown-item">All Productivity</a></li>
         </ul>
     </div>
     {% if type %}
@@ -35,67 +36,123 @@
     </div>
 </div>
 
-<div class="card mt-4">
-    <div class="table-responsive text-nowrap mt-2">
-        <table class="table">
-            {% if type == "vehicle" %}
-                <thead>
-                    <tr>
-                        <th>Vehicle No.</th>
-                        <th>Supervisor</th>
-                    </tr>
-                </thead>
-                <tbody class="table-border-bottom-0">
-                    {% for vehicle in productivity_list %}
-                    <tr>
-                        <td>{{vehicle.vehicle_number}}</td>
-                        <td>{{vehicle.supervisor}}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            {% else %}
-                <thead>
-                    <tr>
-                        <th>Vehicle No.</th>
-                        <th>Start</th>
-                        <th>End</th>
-                        <th>Driver</th>
-                        <th>Estimation</th>
-                        <th>Production</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody class="table-border-bottom-0">
-                    {% for productivity in productivity_list %}
-                    <tr>
-                        <td>{{productivity.vehicle}}</td>
-                        <td>{{productivity.start}}</td>
-                        <td>{{productivity.end}}</td>
-                        <td>{{productivity.driver }}</td>
-                        <td>{{productivity.estimation }}</td>
-                        <td>{{productivity.day_production }}</td>
-                        <td>
-                            {% if not productivity.end %}
-                            <div class="dropdown">
-                                <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                                <i class="bx bx-dots-vertical-rounded"></i>
-                                </button>
-                                <div class="dropdown-menu">
-                                    <a href="{% url "edit_productivity" productivity.id %}" class="dropdown-item">
-                                        <i class="bx bxs-pencil"></i>&nbsp;&nbsp;Edit
-                                    </a>
-                                    <a href="{% url "end_productivity" productivity.id %}" class="dropdown-item">
-                                        <i class="bx bxs-stopwatch"></i>&nbsp;&nbsp;Stop Vehicle
-                                    </a>
-                                </div>
-                            </div>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            {% endif %}
-        </table>
-    </div>
+{% if not type %}
+<div class="row mt-4">
+    {% for productivity in productivity_list %}
+        <div class="col-sm-3">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">{{productivity.vehicle}}</h5>
+                    <div class="card-subtitle mb-1">Estimation: <b>{{productivity.estimation }}</b></div>
+                    <div class="card-subtitle mb-3">Production: <b>{{productivity.day_production }}</b></div>
+                    <h5 class="mb-1">Routes</h5>
+                    <ul>
+                        {% for route in productivity.routes.all %}
+                            <li>{{route}}</li>
+                        {% endfor %}
+                    </ul>
+                    {% if not productivity.end %}
+                        <a href="{% url "edit_productivity" productivity.id %}" class="btn btn-sm btn-primary">
+                            <i class="bx bxs-pencil"></i> Edit
+                        </a>
+                        <button class="btn btn-sm btn-danger"  data-bs-toggle="modal" data-bs-target="#stop-productivity-{{productivity.id}}">
+                            <i class="bx bxs-stopwatch"></i> Stop Vehicle
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="stop-productivity-{{productivity.id}}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel1">Stop Vehicle</h5>
+                        <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"
+                        ></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mt-3">Are you sure you want to Stop Productivity for: <b>{{productivity}}</b>?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            Close
+                        </button>
+                        <a href="{% url "end_productivity" productivity.id %}" class="btn btn-danger">
+                            <i class="bx bxs-stopwatch"></i> Stop Vehicle
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
 </div>
+{% else %}
+    <div class="card mt-4">
+        <div class="table-responsive text-nowrap mt-2">
+            <table class="table">
+                {% if type == "vehicle" %}
+                    <thead>
+                        <tr>
+                            <th>Vehicle No.</th>
+                            <th>Supervisor</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-border-bottom-0">
+                        {% for vehicle in productivity_list %}
+                        <tr>
+                            <td>{{vehicle.vehicle_number}}</td>
+                            <td>{{vehicle.supervisor}}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                {% else %}
+                    <thead>
+                        <tr>
+                            <th>Vehicle No.</th>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th>Driver</th>
+                            <th>Estimation</th>
+                            <th>Production</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-border-bottom-0">
+                        {% for productivity in productivity_list %}
+                        <tr>
+                            <td>{{productivity.vehicle}}</td>
+                            <td>{{productivity.start}}</td>
+                            <td>{{productivity.end}}</td>
+                            <td>{{productivity.driver }}</td>
+                            <td>{{productivity.estimation }}</td>
+                            <td>{{productivity.day_production }}</td>
+                            <td>
+                                {% if not productivity.end %}
+                                <div class="dropdown">
+                                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                    <i class="bx bx-dots-vertical-rounded"></i>
+                                    </button>
+                                    <div class="dropdown-menu">
+                                        <a href="{% url "edit_productivity" productivity.id %}" class="dropdown-item">
+                                            <i class="bx bxs-pencil"></i>&nbsp;&nbsp;Edit
+                                        </a>
+                                        <a href="{% url "end_productivity" productivity.id %}" class="dropdown-item">
+                                            <i class="bx bxs-stopwatch"></i>&nbsp;&nbsp;Stop Vehicle
+                                        </a>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                {% endif %}
+            </table>
+        </div>
+    </div>
+{% endif %}
 {% endblock content %}

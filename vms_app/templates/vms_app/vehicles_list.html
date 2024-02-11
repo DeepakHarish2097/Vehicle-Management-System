@@ -28,30 +28,14 @@
             <thead>
                 <tr>
                     <th>Vehicle No.</th>
-                    <th>Is Active</th>
-                    <th>Is Working</th>
                     <th>Supervisor</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody class="table-border-bottom-0">
                 {% for vehicle in vehicles %}
-                <tr>
+                <tr {% if not vehicle.is_working %}class="table-danger"{% endif %}>
                     <td>{{vehicle.vehicle_number}}</td>
-                    <td>
-                        {% if vehicle.is_active %}
-                        <span class="badge rounded-pill bg-label-primary">Active</span>
-                        {% else %}
-                        <span class="badge rounded-pill bg-label-danger">In Active</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if vehicle.is_working %}
-                        <span class="badge rounded-pill bg-label-primary">Working</span>
-                        {% else %}
-                        <span class="badge rounded-pill bg-label-danger">Not Working</span>
-                        {% endif %}
-                    </td>
                     <td>{{vehicle.supervisor}}</td>
                     <td>
                         {% if request.user.is_superuser %}

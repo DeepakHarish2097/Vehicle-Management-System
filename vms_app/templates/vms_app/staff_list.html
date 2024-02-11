@@ -4,10 +4,19 @@
 <h4 class="fw-bold py-3 mb-4">Staffs</h4>
 
 <div class="row">
-    <div class="col">
+    <div class="col-auto">
         <a href="{% url "create_staff" %}" class="btn btn-primary">
             <span class="tf-icons bx bx-list-plus"></span> Add Staff
         </a>
+    </div>
+    <div class="col-auto">
+        <button type="button" class="btn btn-primary btn-icon dropdown-toggle hide-arrow" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bx bx-filter"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-start" style="">
+            <li><a class="dropdown-item" href="{% url "staff_list" %}">Active</a></li>
+            <li><a class="dropdown-item" href="{% url "staff_list" %}?query=in_active">In Active</a></li>
+        </ul>
     </div>
 </div>
 
@@ -19,8 +28,6 @@
                     <th>Name</th>
                     <th>Employee Id</th>
                     <th>Contact</th>
-                    <th>Is Active</th>
-                    {% comment %} <th>Is Superuser</th> {% endcomment %}
                     <th></th>
                 </tr>
             </thead>
@@ -30,20 +37,6 @@
                         <td>{{employee.name}}</td>
                         <td>{{employee.employee_id}}</td>
                         <td>{{employee.contact}}</td>
-                        <td>
-                            {% if employee.is_active %}
-                            <span class="badge rounded-pill bg-label-primary">Active</span>
-                            {% else %}
-                            <span class="badge rounded-pill bg-label-danger">In Active</span>
-                            {% endif %}
-                        </td>
-                        {% comment %} <td>
-                            {% if employee.is_superuser %}
-                            <span class="badge rounded-pill bg-label-primary">Superuser</span>
-                            {% else %}
-                            <span class="badge rounded-pill bg-label-danger">Staff</span>
-                            {% endif %}
-                        </td> {% endcomment %}
                         <td>
                             <div class="dropdown">
                                 <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
