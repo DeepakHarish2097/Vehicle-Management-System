@@ -1,3 +1,7 @@
-# Vehicle Management System
+# VMS
 
-Testing
+# 20240220
+The models are updated. All Form views and UI have to be updated according to the updated models
+
+
+
