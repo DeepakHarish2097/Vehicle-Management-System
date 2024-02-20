@@ -95,7 +95,7 @@ class Route(models.Model):
     # -----------------------------------------------------------------------------------------------
 
     def __str__(self) -> str:
-        return f"{self.area}, {self.block}, {self.street}"
+        return f"{self.zone}, {self.ward}, {self.id}"
 
 
 class Vehicle(models.Model):
