@@ -40,20 +40,59 @@ class Employee(AbstractBaseUser, PermissionsMixin):
         return self.name
 
 
+# =======================================Hasan 20240217========================================
+
+class Workshop(models.Model):
+    workshop_name = models.CharField(max_length=50)
+    incharge = models.CharField(max_length=50, null=True, blank=True)
+    location = models.CharField(max_length=50, null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.workshop_name
+
+
+class Zone(models.Model):
+    zone_name = models.CharField(max_length=50, unique=True)
+    is_active = models.BooleanField()
+
+    def __str__(self):
+        return self.zone_name
+
+
+class Ward(models.Model):
+    ward_name = models.CharField(max_length=50, unique=True)
+    zone = models.ForeignKey(Zone, related_name='contained_wards_set', on_delete=models.PROTECT)
+    is_active = models.BooleanField()
+
+    def __str__(self):
+        return self.zone + self.ward_name
+
+
+# -----------------------------------------------------------------------------------------------
+
+
 class Route(models.Model):
-    area = models.CharField(max_length=500)
-    block = models.CharField(max_length=500)
+    # area = models.CharField(max_length=500) #comment by Hasan
+    # block = models.CharField(max_length=500) #comment by Hasan
     street = models.CharField(max_length=500)
     is_active = models.BooleanField(default=True)
     supervisor = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='route_supervised_by', limit_choices_to={'is_active': True})
     estimation = models.IntegerField()
+
     created_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='route_created_by')
     created_on = models.DateTimeField(auto_now_add=True)
     updated_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='route_updated_by')
     updated_on = models.DateTimeField(auto_now=True)
+
+    # =======================================Hasan 20240217========================================
+    zone = models.ForeignKey(Zone, related_name='zone_routes_set', on_delete=models.PROTECT, null=True, blank=True)
+    wards = models.ForeignKey(Ward, related_name='ward_routes_set', on_delete=models.PROTECT, null=True, blank=True)
+
+    # -----------------------------------------------------------------------------------------------
 
     def __str__(self) -> str:
         return f"{self.area}, {self.block}, {self.street}"
@@ -66,12 +105,31 @@ class Vehicle(models.Model):
     supervisor = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='vehicle_supervised_by', limit_choices_to={'is_active': True})
     remark = models.TextField(null=True, blank=True)
+
     created_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='vehicle_created_by')
     created_on = models.DateTimeField(auto_now_add=True)
     updated_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='vehicle_updated_by')
     updated_on = models.DateTimeField(auto_now=True)
+
+    # ===========================Hasan 20240217 ===============================================
+    zone = models.ForeignKey(Zone, related_name='zone_vehicles_set',
+                             on_delete=models.PROTECT, null=True, blank=True)
+    workshop = models.ForeignKey(Workshop, related_name='workshop_vehicles_set',
+                                 on_delete=models.PROTECT, null=True, blank=True)
+
+    # vehicle RTO details
+    register_number = models.CharField(max_length=50, null=True, blank=True, unique=True)
+    chassis_number = models.CharField(max_length=50, null=True, blank=True)
+    vehicle_model = models.CharField(max_length=50, null=True, blank=True)
+    type = models.CharField(max_length=50, null=True, blank=True)
+    engine_number = models.CharField(max_length=50, null=True, blank=True)
+    fc_date = models.DateField(null=True, blank=True)
+    insurance = models.DateField(null=True, blank=True)
+    puc = models.DateField(null=True, blank=True)  # pollution under control certificate expiry date
+
+    # -----------------------------------------------------------------------------------------------
 
     def __str__(self) -> str:
         return self.vehicle_number
@@ -97,3 +155,41 @@ class Productivity(models.Model):
             return (abs(self.estimation - self.day_production) / self.estimation) * 100
         else:
             return
+
+
+# =================================== Hasan 20240217 ==============================================
+class Transfer_Register(models.Model):
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT)
+    transfered_date = models.DateField()
+    from_zone = models.ForeignKey(Zone, related_name='fromzones_tl', on_delete=models.PROTECT)
+    to_zone = models.ForeignKey(Zone, related_name = 'tozones_tl', on_delete=models.PROTECT)
+    requested_by=models.ForeignKey(Employee, on_delete=models.PROTECT)
+    reason=models.TextField()
+    log_no = models.PositiveIntegerField(null=True, blank=True) # hard copy row serial number
+
+
+class AccidentLog(models.Model):
+    choices_accident_severity = [('Fatility', 'Fatility'), ('Near Miss', 'Near Miss'),
+                                 ('Property Damage', 'Property Damage')]
+    choices_causes = [('Mechanical Failiure', 'Mechanical Failiure'),
+                      ('Hydrualic Failiure', 'Hydrualic Failiure'),
+                      ('Over Speeding', 'Over Speeding'),
+                      ('Poor Visibility', 'Poor Visibility'),
+                      ('Lack of Attention', 'Lack of Attention'),
+                      ('Influence of Alchohol', 'Influence of Alchohol'),
+                      ('Lack of Training', 'Lack of Training'),
+                      ('Others', 'Others')
+                      ]
+    driver_name = models.CharField(max_length=50)
+    age = models.PositiveIntegerField(null=True, blank=True)
+    employee_id = models.CharField(max_length=50, null=True, blank=True)
+    contact = models.CharField(max_length=50, null=True, blank=True)
+    accident_time = models.DateTimeField(null=True, blank=True)
+    accident_location = models.CharField(max_length=250, null=True, blank=True)
+    accident_severity = models.CharField(max_length=100, choices=choices_accident_severity)
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT)
+    cause_of_accident = models.CharField(max_length=100, choices=choices_causes)
+    action_needed = models.TextField()
+    remark = models.TextField()
+
+

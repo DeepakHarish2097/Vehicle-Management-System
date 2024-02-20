@@ -22,7 +22,7 @@ class VehicleForm(forms.ModelForm):
 class RouteForm(forms.ModelForm):
     class Meta:
         model = Route
-        fields = ("area", "block", "street", "supervisor", "estimation")
+        fields = ("street", "supervisor", "estimation")
 
 
 class EmployeeRegistrationForm(UserCreationForm):
