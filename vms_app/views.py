@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import Employee, Vehicle, Route, Productivity
-from .forms import VehicleForm, RouteForm, EmployeeRegistrationForm, ProductivityForm, ProductivityReportForm, EmployeeEditForm
+from .models import Employee, Vehicle, Route, Productivity, Zone, Ward
+from .forms import VehicleForm, RouteForm, EmployeeRegistrationForm, \
+    ProductivityForm, ProductivityReportForm, EmployeeEditForm, ZoneForm, \
+    WardForm
 from .decorators import superuser_required, active_required
 from django.contrib.auth import logout
 from django.utils import timezone
@@ -107,12 +109,106 @@ def activate_vehicle(request, id: int):
         return redirect('home')
 
 
+# /////////////////// Zone Views \\\\\\\\\\\\\\\\\\\
+@login_required(login_url='login')
+@active_required
+def zone_list(request):
+    zones = Zone.objects.all()
+    context = {
+        "zones": zones,
+        "menu": "menu-zone"
+    }
+    return render(request, 'vms_app/zone_list.html', context)
+
+
+@login_required(login_url='login')
+@active_required
+def create_zone(request):
+    form = ZoneForm()
+    if request.method == 'POST':
+        form = ZoneForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('zone_list')
+    context = {
+        "form": form,
+        "form_title": "Add Zone",
+        "menu": "menu-zone",
+    }
+    return render(request, 'vms_app/forms.html', context)
+
+
+@login_required(login_url='login')
+@active_required
+def edit_zone(request, id: int):
+    zone = Zone.objects.get(pk=id)
+    form = ZoneForm(instance=zone)
+    if request.method == 'POST':
+        form = ZoneForm(request.POST, instance=zone)
+        if form.is_valid():
+            form.save()
+            return redirect('zone_list')
+    context = {
+        "form": form,
+        "form_title": "Edit Zone",
+        "menu": "menu-zone",
+    }
+    return render(request, 'vms_app/forms.html', context)
+
+
+# /////////////////// Ward Views \\\\\\\\\\\\\\\\\\\
+@login_required(login_url='login')
+@active_required
+def ward_list(request):
+    wards = Ward.objects.all()
+    context = {
+        "wards": wards,
+        "menu": "menu-ward"
+    }
+    return render(request, 'vms_app/ward_list.html', context)
+
+
+@login_required(login_url='login')
+@active_required
+def create_ward(request):
+    form = WardForm()
+    if request.method == 'POST':
+        form = WardForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('ward_list')
+    context = {
+        "form": form,
+        "form_title": "Add Ward",
+        "menu": "menu-ward",
+    }
+    return render(request, 'vms_app/forms.html', context)
+
+
+@login_required(login_url='login')
+@active_required
+def edit_ward(request, id: int):
+    ward = Ward.objects.get(pk=id)
+    form = WardForm(instance=ward)
+    if request.method == 'POST':
+        form = WardForm(request.POST, instance=ward)
+        if form.is_valid():
+            form.save()
+            return redirect('ward_list')
+    context = {
+        "form": form,
+        "form_title": "Edit Ward",
+        "menu": "menu-ward",
+    }
+    return render(request, 'vms_app/forms.html', context)
+
+
 # /////////////////// Route Views \\\\\\\\\\\\\\\\\\\
 @login_required(login_url='login')
 @active_required
 def route_list(request):
-    serch_active = False if request.GET.get('query', None) == "in_active" else True
-    routes = Route.objects.filter(is_active=serch_active)
+    search_active = False if request.GET.get('query', None) == "in_active" else True
+    routes = Route.objects.filter(is_active=search_active)
     context = {
         "routes": routes,
         "menu": "menu-route"
@@ -189,8 +285,8 @@ def activate_route(request, id: int):
 @active_required
 @superuser_required
 def staff_list(request):
-    serch_active = False if request.GET.get('query', None) == "in_active" else True
-    employees = Employee.objects.filter(is_active=serch_active).order_by("-is_superuser")
+    search_active = False if request.GET.get('query', None) == "in_active" else True
+    employees = Employee.objects.filter(is_active=search_active).order_by("-is_superuser")
     context = {
         "employees": employees,
         "menu": "menu-staff"

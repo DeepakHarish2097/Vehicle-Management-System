@@ -1,5 +1,5 @@
 from django import forms
-from .models import Employee, Vehicle, Route, Productivity
+from .models import Employee, Vehicle, Route, Productivity, Zone, Ward
 from django.contrib.auth.forms import UserCreationForm
 
 
@@ -19,10 +19,22 @@ class VehicleForm(forms.ModelForm):
         self.fields['remark'].widget.attrs.update({'rows': '3'})
 
 
+class ZoneForm(forms.ModelForm):
+    class Meta:
+        model = Zone
+        fields = "__all__"
+
+
+class WardForm(forms.ModelForm):
+    class Meta:
+        model = Ward
+        fields = "__all__"
+
+
 class RouteForm(forms.ModelForm):
     class Meta:
         model = Route
-        fields = ("street", "supervisor", "estimation")
+        fields = ("zone", "ward", "street", "supervisor", "estimation")
 
 
 class EmployeeRegistrationForm(UserCreationForm):

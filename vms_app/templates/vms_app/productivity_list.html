@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h4 class="fw-bold py-3 mb-4">Productivities</h4>
+<h4 class="fw-bold py-3 mb-4">Productivity</h4>
 
 <div class="row">
     <div class="col-auto">
@@ -52,11 +52,14 @@
                         {% endfor %}
                     </ul>
                     {% if not productivity.end %}
-                        <a href="{% url "edit_productivity" productivity.id %}" class="btn btn-sm btn-primary">
-                            <i class="bx bxs-pencil"></i> Edit
+                        <a href="{% url "edit_productivity" productivity.id %}" class="btn btn-sm btn-primary btn-icon mx-1">
+                            <i class="bx bxs-pencil"></i>
                         </a>
-                        <button class="btn btn-sm btn-danger"  data-bs-toggle="modal" data-bs-target="#stop-productivity-{{productivity.id}}">
-                            <i class="bx bxs-stopwatch"></i> Stop Vehicle
+                        <button class="btn btn-sm btn-dark btn-icon mx-1"  data-bs-toggle="modal" data-bs-target="#stop-productivity-{{productivity.id}}">
+                            <i class='bx bx-repost'></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger btn-icon mx-1"  data-bs-toggle="modal" data-bs-target="#stop-productivity-{{productivity.id}}">
+                            <i class="bx bxs-stopwatch"></i>
                         </button>
                     {% endif %}
                 </div>

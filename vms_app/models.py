@@ -54,7 +54,7 @@ class Workshop(models.Model):
 
 class Zone(models.Model):
     zone_name = models.CharField(max_length=50, unique=True)
-    is_active = models.BooleanField()
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.zone_name
@@ -63,18 +63,18 @@ class Zone(models.Model):
 class Ward(models.Model):
     ward_name = models.CharField(max_length=50, unique=True)
     zone = models.ForeignKey(Zone, related_name='contained_wards_set', on_delete=models.PROTECT)
-    is_active = models.BooleanField()
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.zone + self.ward_name
+        return f"{self.ward_name}"
 
 
 # -----------------------------------------------------------------------------------------------
 
 
 class Route(models.Model):
-    # area = models.CharField(max_length=500) #comment by Hasan
-    # block = models.CharField(max_length=500) #comment by Hasan
+    zone = models.ForeignKey(Zone, related_name='zone_routes_set', on_delete=models.PROTECT)
+    ward = models.ForeignKey(Ward, related_name='ward_routes_set', on_delete=models.PROTECT)
     street = models.CharField(max_length=500)
     is_active = models.BooleanField(default=True)
     supervisor = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True,
@@ -88,14 +88,8 @@ class Route(models.Model):
                                    related_name='route_updated_by')
     updated_on = models.DateTimeField(auto_now=True)
 
-    # =======================================Hasan 20240217========================================
-    zone = models.ForeignKey(Zone, related_name='zone_routes_set', on_delete=models.PROTECT, null=True, blank=True)
-    wards = models.ForeignKey(Ward, related_name='ward_routes_set', on_delete=models.PROTECT, null=True, blank=True)
-
-    # -----------------------------------------------------------------------------------------------
-
     def __str__(self) -> str:
-        return f"{self.zone}, {self.ward}, {self.id}"
+        return f"{self.zone}, {self.ward}, {self.street}"
 
 
 class Vehicle(models.Model):
@@ -139,12 +133,22 @@ class Productivity(models.Model):
     vehicle = models.ForeignKey(Vehicle, related_name="vehicle_productivity_set", on_delete=models.SET_NULL, null=True,
                                 blank=True, limit_choices_to={'is_active': True, 'is_working': False})
     start = models.DateTimeField(default=timezone.now)
+    out_km = models.FloatField(null=True, blank=True, default=0.0)
     end = models.DateTimeField(null=True, blank=True)
+    in_km = models.FloatField(null=True, blank=True, default=0.0)
+    shift = models.CharField(max_length=100, null=True, blank=True)
     routes = models.ManyToManyField(Route, blank=True, limit_choices_to={'is_active': True})
     estimation = models.IntegerField(null=True, blank=True)
     driver = models.CharField(max_length=500, default='Vendor')
     day_production = models.IntegerField(null=True, blank=True)
-    rounds = models.IntegerField(null=True, blank=True)
+    total_trip = models.IntegerField(null=True, blank=True, default=1)
+    first_trip_ton = models.IntegerField(null=True, blank=True)
+    second_trip_ton = models.IntegerField(null=True, blank=True)
+    third_trip_ton = models.IntegerField(null=True, blank=True)
+    fourth_trip_ton = models.IntegerField(null=True, blank=True)
+    fifth_trip_ton = models.IntegerField(null=True, blank=True)
+    sixth_trip_ton = models.IntegerField(null=True, blank=True)
+    total_ton = models.IntegerField(null=True, blank=True)
 
     def __str__(self) -> str:
         return f"[{self.vehicle}] {self.driver}"
@@ -158,28 +162,32 @@ class Productivity(models.Model):
 
 
 # =================================== Hasan 20240217 ==============================================
-class Transfer_Register(models.Model):
+class TransferRegister(models.Model):
     vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT)
-    transfered_date = models.DateField()
-    from_zone = models.ForeignKey(Zone, related_name='fromzones_tl', on_delete=models.PROTECT)
-    to_zone = models.ForeignKey(Zone, related_name = 'tozones_tl', on_delete=models.PROTECT)
-    requested_by=models.ForeignKey(Employee, on_delete=models.PROTECT)
-    reason=models.TextField()
-    log_no = models.PositiveIntegerField(null=True, blank=True) # hard copy row serial number
+    transferred_date = models.DateField()
+    from_zone = models.ForeignKey(Zone, related_name='from_zones_tl', on_delete=models.PROTECT)
+    to_zone = models.ForeignKey(Zone, related_name='to_zones_tl', on_delete=models.PROTECT)
+    requested_by = models.ForeignKey(Employee, on_delete=models.PROTECT)
+    reason = models.TextField()
+    log_no = models.PositiveIntegerField(null=True, blank=True)  # hard copy row serial number
 
 
 class AccidentLog(models.Model):
-    choices_accident_severity = [('Fatility', 'Fatility'), ('Near Miss', 'Near Miss'),
-                                 ('Property Damage', 'Property Damage')]
-    choices_causes = [('Mechanical Failiure', 'Mechanical Failiure'),
-                      ('Hydrualic Failiure', 'Hydrualic Failiure'),
-                      ('Over Speeding', 'Over Speeding'),
-                      ('Poor Visibility', 'Poor Visibility'),
-                      ('Lack of Attention', 'Lack of Attention'),
-                      ('Influence of Alchohol', 'Influence of Alchohol'),
-                      ('Lack of Training', 'Lack of Training'),
-                      ('Others', 'Others')
-                      ]
+    choices_accident_severity = [
+        ('Fatality', 'Fatality'),
+        ('Near Miss', 'Near Miss'),
+        ('Property Damage', 'Property Damage')
+    ]
+    choices_causes = [
+        ('Mechanical Failure', 'Mechanical Failure'),
+        ('Hydraulic Failure', 'Hydraulic Failure'),
+        ('Over Speeding', 'Over Speeding'),
+        ('Poor Visibility', 'Poor Visibility'),
+        ('Lack of Attention', 'Lack of Attention'),
+        ('Influence of Alcohol', 'Influence of Alcohol'),
+        ('Lack of Training', 'Lack of Training'),
+        ('Others', 'Others')
+    ]
     driver_name = models.CharField(max_length=50)
     age = models.PositiveIntegerField(null=True, blank=True)
     employee_id = models.CharField(max_length=50, null=True, blank=True)
@@ -191,5 +199,3 @@ class AccidentLog(models.Model):
     cause_of_accident = models.CharField(max_length=100, choices=choices_causes)
     action_needed = models.TextField()
     remark = models.TextField()
-
-

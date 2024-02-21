@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from django.contrib.auth import views as auth_views
+from .serializers import *
 
 
 urlpatterns = [
@@ -15,7 +16,7 @@ urlpatterns = [
     path('password-change-done/', views.password_change_done, name='password_change_done'),
 
 
-    # ------------------- App View Urls -------------------
+    # /////////////////// App View Urls \\\\\\\\\\\\\\\\\\\
 
     # Vehicle Urls
     path('', views.home, name='home'),
@@ -23,6 +24,16 @@ urlpatterns = [
     path('edit-vehicle/<int:id>/', views.edit_vehicle, name='edit_vehicle'),
     path('deactivate-vehicle/<int:id>/', views.deactivate_vehicle, name='deactivate_vehicle'),
     path('activate-vehicle/<int:id>/', views.activate_vehicle, name='activate_vehicle'),
+
+    # Zone Urls
+    path('zone-list/', views.zone_list, name='zone_list'),
+    path('add-zone/', views.create_zone, name='create_zone'),
+    path('edit-zone/<int:id>/', views.edit_zone, name='edit_zone'),
+
+    # Ward Urls
+    path('ward-list/', views.ward_list, name='ward_list'),
+    path('add-ward/', views.create_ward, name='create_ward'),
+    path('edit-ward/<int:id>/', views.edit_ward, name='edit_ward'),
 
     # Route Urls
     path('route-list/', views.route_list, name='route_list'),
@@ -46,5 +57,23 @@ urlpatterns = [
     path('productivity-week-report/', views.productivity_week_report, name='productivity_week_report'),
     path('productivity-month-report/', views.productivity_month_report, name='productivity_month_report'),
     path('productivity-custom-report/', views.productivity_custom_report, name='productivity_custom_report'),
+
+    # testing serializers urls
+    path('test/employee/', Employee_lcv.as_view(), name='Employee_lcv'),
+    path('test/employee/<int:pk>/', Employee_rud.as_view(), name='Employee_rud'),
+    path('test/workshop/', Workshop_lcv.as_view(), name='Workshop_lcv'),
+    path('test/workshop/<int:pk>/', Workshop_rud.as_view(), name='Workshop_rud'),
+    path('test/zone/', Zone_lcv.as_view(), name='Zone_lcv'),
+    path('test/zone/<int:pk>/', Zone_rud.as_view(), name='Zone_rud'),
+    path('test/ward/', Ward_lcv.as_view(), name='Ward_lcv'),
+    path('test/ward/<int:pk>/', Ward_rud.as_view(), name='Ward_rud'),
+    path('test/route/', Route_lcv.as_view(), name='Route_lcv'),
+    path('test/route/<int:pk>/', Route_rud.as_view(), name='Route_rud'),
+    path('test/vehicle/', Vehicle_lcv.as_view(), name='Vehicle_lcv'),
+    path('test/vehicle/<int:pk>/', Vehicle_rud.as_view(), name='Vehicle_rud'),
+    path('test/productivity/', Productivity_lcv.as_view(), name='Productivity_lcv'),
+    path('test/productivity/<int:pk>/', Productivity_rud.as_view(), name='Productivity_rud'),
+    path('test/transfer-register/', Transfer_Register_lcv.as_view(), name='Transfer_Register_lcv'),
+    path('test/transfer-register/<int:pk>/', Transfer_Register_rud.as_view(), name='Transfer_Register_rud'),
 ]
 
