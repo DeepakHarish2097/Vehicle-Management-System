@@ -21,7 +21,7 @@ def not_authorised(request):
     return render(request, 'registration/inactive.html')
 
 
-# ------------------- Vehicle Views -------------------
+# /////////////////// Vehicle Views \\\\\\\\\\\\\\\\\\\
 @login_required(login_url='login')
 @active_required
 def home(request):
@@ -107,7 +107,7 @@ def activate_vehicle(request, id: int):
         return redirect('home')
 
 
-# ------------------- Route Views -------------------
+# /////////////////// Route Views \\\\\\\\\\\\\\\\\\\
 @login_required(login_url='login')
 @active_required
 def route_list(request):
@@ -184,7 +184,7 @@ def activate_route(request, id: int):
         return redirect('route_list')
 
 
-# ------------------- Staff Views -------------------
+# /////////////////// Staff Views \\\\\\\\\\\\\\\\\\\
 @login_required(login_url='login')
 @active_required
 @superuser_required
@@ -275,7 +275,7 @@ def edit_user(request):
     return render(request, 'vms_app/edit_profile.html', context)
 
 
-# ------------------- Productivity Views -------------------
+# /////////////////// Productivity Views \\\\\\\\\\\\\\\\\\\
 @login_required(login_url='login')
 @active_required
 def productivity_list(request):
