@@ -1,6 +1,7 @@
 from django import forms
 from .models import Employee, Vehicle, Route, Productivity, Zone, Ward
 from django.contrib.auth.forms import UserCreationForm
+from django.forms.widgets import DateTimeInput
 
 
 class DateTimeInput(forms.DateTimeInput):
@@ -10,7 +11,9 @@ class DateTimeInput(forms.DateTimeInput):
 class VehicleForm(forms.ModelForm):
     class Meta:
         model = Vehicle
-        fields = ("vehicle_number", "supervisor", "remark")
+        exclude = ["is_working", ]
+
+        
 
     def __init__(self, *args, **kwargs):
         super(VehicleForm, self).__init__(*args, **kwargs)
