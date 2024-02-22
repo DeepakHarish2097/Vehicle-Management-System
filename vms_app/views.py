@@ -412,6 +412,14 @@ def productivity_list(request):
 def add_productivity(request):
     form = ProductivityForm()
 
+    if request.user.is_staff:
+        vehicle = Vehicle.objects.filter(supervisor=request.user, is_working=False)
+        routes = Route.objects.filter(supervisor=request.user)
+
+        form.fields['vehicle'].queryset = vehicle
+        form.fields['routes'].queryset = routes
+        
+
     if request.method == "POST":
         form = ProductivityForm(request.POST)
         if form.is_valid():
@@ -445,6 +453,13 @@ def edit_productivity(request, id: int):
     vehicle.save()
     form = ProductivityForm(instance=productivity)
 
+    if request.user.is_staff:
+        vehicle = Vehicle.objects.filter(supervisor=request.user, is_working=False)
+        routes = Route.objects.filter(supervisor=request.user)
+
+        form.fields['vehicle'].queryset = vehicle
+        form.fields['routes'].queryset = routes
+
     if request.method == "POST":
         form = ProductivityForm(request.POST, instance=productivity)
         if form.is_valid():
@@ -471,8 +486,49 @@ def edit_productivity(request, id: int):
 
 @login_required(login_url='login')
 @active_required
+def close_trip(request, id: int):
+    productivity = Productivity.objects.get(pk=id)
+    productivity.total_trip += 1 if productivity.total_trip < 6 else 0
+
+    if request.method == "POST":
+        trip_ton = int(request.POST.get("trip_ton", 0))
+    if productivity.total_trip == 1:
+        productivity.first_trip_ton = trip_ton
+    elif productivity.total_trip == 2:
+        productivity.second_trip_ton = trip_ton
+    elif productivity.total_trip == 3:
+        productivity.third_trip_ton = trip_ton
+    elif productivity.total_trip == 4:
+        productivity.fourth_trip_ton = trip_ton
+    elif productivity.total_trip == 5:
+        productivity.fifth_trip_ton = trip_ton
+    else:
+        productivity.sixth_trip_ton = trip_ton
+
+    productivity.save()
+    return redirect('productivity_list')
+
+
+@login_required(login_url='login')
+@active_required
 def end_productivity(request, id: int):
     productivity = Productivity.objects.get(pk=id)
+    
+    if request.method == "POST":
+        trip_ton = int(request.POST.get("trip_ton", 0))
+    if productivity.total_trip == 1:
+        productivity.first_trip_ton = trip_ton
+    elif productivity.total_trip == 2:
+        productivity.second_trip_ton = trip_ton
+    elif productivity.total_trip == 3:
+        productivity.third_trip_ton = trip_ton
+    elif productivity.total_trip == 4:
+        productivity.fourth_trip_ton = trip_ton
+    elif productivity.total_trip == 5:
+        productivity.fifth_trip_ton = trip_ton
+    else:
+        productivity.sixth_trip_ton = trip_ton
+
     productivity.end = timezone.now()
     productivity.day_production = round((timezone.now()-productivity.start).total_seconds()/60)
     productivity.save()

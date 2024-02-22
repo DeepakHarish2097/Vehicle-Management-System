@@ -54,6 +54,7 @@ urlpatterns = [
     path('add-productivity/', views.add_productivity, name='add_productivity'),
     path('edit-productivity/<int:id>/', views.edit_productivity, name='edit_productivity'),
     path('end-productivity/<int:id>/', views.end_productivity, name='end_productivity'),
+    path('close-trip/<int:id>/', views.close_trip, name='close_trip'),
     path('productivity-week-report/', views.productivity_week_report, name='productivity_week_report'),
     path('productivity-month-report/', views.productivity_month_report, name='productivity_month_report'),
     path('productivity-custom-report/', views.productivity_custom_report, name='productivity_custom_report'),
