@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 from django.contrib.auth import views as auth_views
-from .serializers import *
+from .serializers_views import *
 
 
 urlpatterns = [
@@ -73,7 +73,7 @@ urlpatterns = [
     path('test/vehicle/<int:pk>/', Vehicle_rud.as_view(), name='Vehicle_rud'),
     path('test/productivity/', Productivity_lcv.as_view(), name='Productivity_lcv'),
     path('test/productivity/<int:pk>/', Productivity_rud.as_view(), name='Productivity_rud'),
-    path('test/transfer-register/', Transfer_Register_lcv.as_view(), name='Transfer_Register_lcv'),
-    path('test/transfer-register/<int:pk>/', Transfer_Register_rud.as_view(), name='Transfer_Register_rud'),
+    path('test/transfer-register/', TransferRegister_lcv.as_view(), name='Transfer_Register_lcv'),
+    path('test/transfer-register/<int:pk>/', TransferRegister_rud.as_view(), name='Transfer_Register_rud'),
 ]
 

@@ -45,9 +45,9 @@ class ProductivitySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class Transfer_RegisterSerializer(serializers.ModelSerializer):
+class TransferRegisterSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Transfer_Register
+        model = TransferRegister
         fields = '__all__'
 
 

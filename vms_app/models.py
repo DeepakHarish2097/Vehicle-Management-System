@@ -148,7 +148,7 @@ class Productivity(models.Model):
     fourth_trip_ton = models.IntegerField(null=True, blank=True)
     fifth_trip_ton = models.IntegerField(null=True, blank=True)
     sixth_trip_ton = models.IntegerField(null=True, blank=True)
-    total_ton = models.IntegerField(null=True, blank=True)
+    
 
     def __str__(self) -> str:
         return f"[{self.vehicle}] {self.driver}"
@@ -160,6 +160,10 @@ class Productivity(models.Model):
         else:
             return
 
+    @property
+    def total_ton(self):
+        total_ton = self.first_trip_ton+self.second_trip_ton+self.third_trip_ton+self.fourth_trip_ton+self.fifth_trip_ton+self.sixth_trip_ton
+        return total_ton
 
 # =================================== Hasan 20240217 ==============================================
 class TransferRegister(models.Model):
