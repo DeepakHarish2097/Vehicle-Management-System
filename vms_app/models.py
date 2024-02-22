@@ -137,7 +137,7 @@ class Productivity(models.Model):
     end = models.DateTimeField(null=True, blank=True)
     in_km = models.FloatField(null=True, blank=True, default=0.0)
     shift = models.CharField(max_length=100, null=True, blank=True)
-    routes = models.ManyToManyField(Route, blank=True, limit_choices_to={'is_active': True})
+    routes = models.ManyToManyField(Route, blank=False, limit_choices_to={'is_active': True})
     estimation = models.IntegerField(null=True, blank=True)
     driver = models.CharField(max_length=500, default='Vendor')
     day_production = models.IntegerField(null=True, blank=True)
