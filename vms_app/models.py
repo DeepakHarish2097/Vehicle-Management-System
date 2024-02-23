@@ -222,7 +222,7 @@ class IncidentLog(models.Model):
     mechanic_comment=models.TextField()
     estimatedrepair_cost = models.FloatField(null=True, blank=True)
     cost_responsible = models.CharField(max_length=250, choices=[('Company', 'Company'), ('Insurance', 'Insurance'), ('Thirdparty', 'Thirdparty')])
-    sent_to = models.ForeignKey(Workshop, relatedname='workshopsincidents_set', on_delete=models.PROTECT, null=True, blank=True)
+    sent_to = models.ForeignKey(Workshop, related_name='workshopsincidents_set', on_delete=models.PROTECT, null=True, blank=True)
     action_needed = models.TextField()
     remark = models.TextField()
 
