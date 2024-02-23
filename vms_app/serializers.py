@@ -51,7 +51,7 @@ class TransferRegisterSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class AccidentLogSerializer(serializers.ModelSerializer):
+class IncidentLogSerializer(serializers.ModelSerializer):
     class Meta:
-        model = AccidentLog
+        model = IncidentLog
         fields = '__all__'

@@ -84,11 +84,11 @@ class TransferRegister_rud(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = TransferRegisterSerializer
 
 
-class AccidentLog_lcv(generics.ListCreateAPIView):
-    queryset = AccidentLog.objects.all()
-    serializer_class = AccidentLogSerializer
+class IncidentLog_lcv(generics.ListCreateAPIView):
+    queryset = IncidentLog.objects.all()
+    serializer_class = IncidentLogSerializer
 
 
-class AccidentLog_rud(generics.RetrieveUpdateDestroyAPIView):
-    queryset = AccidentLog.objects.all()
-    serializer_class = AccidentLogSerializer
+class IncidentLog_rud(generics.RetrieveUpdateDestroyAPIView):
+    queryset = IncidentLog.objects.all()
+    serializer_class = IncidentLogSerializer

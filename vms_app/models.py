@@ -176,7 +176,7 @@ class TransferRegister(models.Model):
     log_no = models.PositiveIntegerField(null=True, blank=True)  # hard copy row serial number
 
 
-class AccidentLog(models.Model):
+# class AccidentLog(models.Model):
     choices_accident_severity = [
         ('Fatality', 'Fatality'),
         ('Near Miss', 'Near Miss'),
@@ -203,3 +203,29 @@ class AccidentLog(models.Model):
     cause_of_accident = models.CharField(max_length=100, choices=choices_causes)
     action_needed = models.TextField()
     remark = models.TextField()
+
+class IncidentLog(models.Model):
+    IncidentTypesChoices = [('Accident', 'Accident'), ('Breakdown', 'Breakdown'), ('General Maintanence', 'General Maintanence')]
+    incident_type=models.CharField(max_length=100, choices=IncidentTypesChoices)
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT)
+    driver_name = models.CharField(max_length=50, null=True, blank=True)
+    age = models.PositiveIntegerField(null=True, blank=True)
+    employee_id = models.CharField(max_length=50, null=True, blank=True)
+    driver_contact = models.CharField(max_length=50, null=True, blank=True)
+    incident_time = models.DateTimeField(null=True, blank=True)
+    incident_location = models.CharField(max_length=250, null=True, blank=True)
+    incident_brief = models.TextField()
+    cause_of_incident = models.TextField()
+    investigated_by = models.CharField(max_length=200, null=True, blank=True)
+    driver_comment=models.TextField()
+    zonalmanager_comment = models.TextField()
+    mechanic_comment=models.TextField()
+    estimatedrepair_cost = models.FloatField(null=True, blank=True)
+    cost_responsible = models.CharField(max_length=250, choices=[('Company', 'Company'), ('Insurance', 'Insurance'), ('Thirdparty', 'Thirdparty')])
+    sent_to = models.ForeignKey(Workshop, relatedname='workshopsincidents_set', on_delete=models.PROTECT, null=True, blank=True)
+    action_needed = models.TextField()
+    remark = models.TextField()
+
+class MaintanenceHistory(models.Model):
+    pass
+
