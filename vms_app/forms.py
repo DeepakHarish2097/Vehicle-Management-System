@@ -1,7 +1,8 @@
 from django import forms
-from .models import Employee, Vehicle, Route, Productivity, Zone, Ward
+from .models import Employee, Vehicle, Route, Productivity, Zone, Ward, \
+    TransferRegister, AccidentLog
 from django.contrib.auth.forms import UserCreationForm
-from django.forms.widgets import DateTimeInput, DateInput
+from django.forms.widgets import DateInput
 
 
 class DateTimeInput(forms.DateTimeInput):
@@ -13,12 +14,10 @@ class VehicleForm(forms.ModelForm):
         model = Vehicle
         exclude = ["is_working", "created_by", "created_on", "updated_by", "updated_on"]
         widgets = {
-            'fc_date': DateInput(attrs={'type':'date'}),
-            'insurance': DateInput(attrs={'type':'date'}),
-            'puc': DateInput(attrs={'type':'date'})
+            'fc_date': DateInput(attrs={'type': 'date'}),
+            'insurance': DateInput(attrs={'type': 'date'}),
+            'puc': DateInput(attrs={'type': 'date'})
         }
-
-        
 
     def __init__(self, *args, **kwargs):
         super(VehicleForm, self).__init__(*args, **kwargs)
@@ -79,3 +78,21 @@ class ProductivityForm(forms.ModelForm):
 class ProductivityReportForm(forms.Form):
     start = forms.DateField()
     end = forms.DateField()
+
+
+class TransferRegisterForm(forms.ModelForm):
+    class Meta:
+        model = TransferRegister
+        fields = '__all__'
+        widgets = {
+            'transfer_date': DateInput(attrs={'type': 'date'}),
+        }
+
+
+class AccidentLogForm(forms.ModelForm):
+    class Meta:
+        model = AccidentLog
+        fields = '__all__'
+        widgets = {
+            'accident_time': DateTimeInput()
+        }

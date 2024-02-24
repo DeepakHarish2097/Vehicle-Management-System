@@ -59,6 +59,16 @@ urlpatterns = [
     path('productivity-month-report/', views.productivity_month_report, name='productivity_month_report'),
     path('productivity-custom-report/', views.productivity_custom_report, name='productivity_custom_report'),
 
+    # Transfer Registry Urls
+    path('transfer-register-list/', views.transfer_register_view, name='transfer_register_view'),
+    path('add-transfer-register/', views.create_transfer_register, name='create_transfer_register'),
+    path('edit-transfer-register/<int:id>/', views.edit_transfer_register, name='edit_transfer_register'),
+
+    # Accident Log Urls
+    path('accident-log-list/', views.accident_log_view, name='accident_log_view'),
+    path('add-accident-log/', views.create_accident_log, name='create_accident_log'),
+    path('edit-accident-log/<int:id>/', views.edit_accident_log, name='edit_accident_log'),
+
     # testing serializers urls
     path('test/employee/', Employee_lcv.as_view(), name='Employee_lcv'),
     path('test/employee/<int:pk>/', Employee_rud.as_view(), name='Employee_rud'),

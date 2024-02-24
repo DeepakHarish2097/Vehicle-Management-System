@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import Employee, Vehicle, Route, Productivity, Zone, Ward
+from .models import Employee, Vehicle, Route, Productivity, Zone, Ward, \
+    TransferRegister, AccidentLog
 from .forms import VehicleForm, RouteForm, EmployeeRegistrationForm, \
     ProductivityForm, ProductivityReportForm, EmployeeEditForm, ZoneForm, \
-    WardForm
+    WardForm, TransferRegisterForm, AccidentLogForm
 from .decorators import superuser_required, active_required
 from django.contrib.auth import logout
 from django.utils import timezone
@@ -316,7 +317,7 @@ def create_staff(request):
 @login_required(login_url='login')
 @active_required
 @superuser_required
-def deactivate_staff(request, id:str):
+def deactivate_staff(request, id: str):
     employee = Employee.objects.get(pk=id)
     if employee:
         employee.is_active = False
@@ -327,7 +328,7 @@ def deactivate_staff(request, id:str):
 @login_required(login_url='login')
 @active_required
 @superuser_required
-def activate_staff(request, id:str):
+def activate_staff(request, id: str):
     employee = Employee.objects.get(pk=id)
     if employee:
         employee.is_active = True
@@ -398,7 +399,7 @@ def productivity_list(request):
                 all_vehicles = Vehicle.objects.filter(is_active=True)
                 prod_vehicles = Vehicle.objects.filter(vehicle_productivity_set__start__date__gte=timezone.now().date())
                 productivity = [i for i in all_vehicles if i not in prod_vehicles]
-            
+
     context = {
         "menu": "menu-productivity",
         "productivity_list": productivity,
@@ -418,7 +419,6 @@ def add_productivity(request):
 
         form.fields['vehicle'].queryset = vehicle
         form.fields['routes'].queryset = routes
-        
 
     if request.method == "POST":
         form = ProductivityForm(request.POST)
@@ -513,7 +513,7 @@ def close_trip(request, id: int):
 @active_required
 def end_productivity(request, id: int):
     productivity = Productivity.objects.get(pk=id)
-    
+
     if request.method == "POST":
         trip_ton = int(request.POST.get("trip_ton", 0))
     if productivity.total_trip == 1:
@@ -530,7 +530,7 @@ def end_productivity(request, id: int):
         productivity.sixth_trip_ton = trip_ton
 
     productivity.end = timezone.now()
-    productivity.day_production = round((timezone.now()-productivity.start).total_seconds()/60)
+    productivity.day_production = round((timezone.now() - productivity.start).total_seconds() / 60)
     productivity.save()
     vehicle = productivity.vehicle
     vehicle.is_working = False
@@ -547,7 +547,9 @@ def productivity_excel_report(filename, productivity):
     ws.append(headers)
 
     for i in productivity:
-        ws.append([i.vehicle.vehicle_number, i.start.strftime('%d/%m/%Y'), i.end.strftime('%d/%m/%Y'), i.driver, i.estimation, i.day_production])
+        ws.append(
+            [i.vehicle.vehicle_number, i.start.strftime('%d/%m/%Y'), i.end.strftime('%d/%m/%Y'), i.driver, i.estimation,
+             i.day_production])
 
     return wb
 
@@ -567,7 +569,7 @@ def productivity_week_report(request):
     if request.method == "POST":
         response = HttpResponse(content_type='application/ms-excel')
         response['Content-Disposition'] = f'attachment; filename="{filename}.xlsx"'
-        
+
         excel_report = productivity_excel_report(filename, productivity)
         excel_report.save(response)
         return response
@@ -595,7 +597,7 @@ def productivity_month_report(request):
     if request.method == "POST":
         response = HttpResponse(content_type='application/ms-excel')
         response['Content-Disposition'] = f'attachment; filename="{filename}.xlsx"'
-        
+
         excel_report = productivity_excel_report(filename, productivity)
         excel_report.save(response)
         return response
@@ -623,7 +625,6 @@ def productivity_custom_report(request):
         form = ProductivityReportForm(request.POST)
         if form.is_valid():
             data = form.cleaned_data
-    
 
     productivity = Productivity.objects.filter(
         start__date__gte=data['start'],
@@ -647,3 +648,97 @@ def productivity_custom_report(request):
         "custom": True
     }
     return render(request, 'vms_app/productivity_report.html', context)
+
+
+# /////////////////// Transfer Register Views \\\\\\\\\\\\\\\\\\\
+@login_required(login_url='login')
+@active_required
+def transfer_register_view(request):
+    transfers = TransferRegister.objects.all()
+    context = {
+        "menu": "menu-transfer-registry",
+        "transfers": transfers
+    }
+    return render(request, 'vms_app/transfer_registry_list.html', context)
+
+
+@login_required(login_url='login')
+@active_required
+def create_transfer_register(request):
+    form = TransferRegisterForm()
+    if request.method == 'POST':
+        form = TransferRegisterForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('transfer_register_view')
+    context = {
+        "form": form,
+        "menu": "menu-transfer-registry",
+        "form_title": "Add Transfer Register",
+    }
+    return render(request, 'vms_app/forms.html', context)
+
+
+@login_required(login_url='login')
+@active_required
+def edit_transfer_register(request, id: int):
+    transfer = TransferRegister.objects.get(id=id)
+    form = TransferRegisterForm(instance=transfer)
+    if request.method == 'POST':
+        form = TransferRegisterForm(request.POST, instance=transfer)
+        if form.is_valid():
+            form.save()
+            return redirect('transfer_register_view')
+    context = {
+        "form": form,
+        "menu": "menu-transfer-registry",
+        "form_title": "Edit Transfer Register",
+    }
+    return render(request, 'vms_app/forms.html', context)
+
+
+# /////////////////// Accident Log Views \\\\\\\\\\\\\\\\\\\
+@login_required(login_url='login')
+@active_required
+def accident_log_view(request):
+    accidents = AccidentLog.objects.all()
+    context = {
+        "menu": "menu-accident-logs",
+        "accidents": accidents
+    }
+    return render(request, 'vms_app/accident_log_list.html', context)
+
+
+@login_required(login_url='login')
+@active_required
+def create_accident_log(request):
+    form = AccidentLogForm()
+    if request.method == 'POST':
+        form = AccidentLogForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('accident_log_view')
+    context = {
+        "form": form,
+        "menu": "menu-accident-logs",
+        "form_title": "Add Accident Log",
+    }
+    return render(request, 'vms_app/forms.html', context)
+
+
+@login_required(login_url='login')
+@active_required
+def edit_accident_log(request, id: int):
+    accident = AccidentLog.objects.get(id=id)
+    form = AccidentLogForm(instance=accident)
+    if request.method == 'POST':
+        form = AccidentLogForm(request.POST, instance=accident)
+        if form.is_valid():
+            form.save()
+            return redirect('accident_log_view')
+    context = {
+        "form": form,
+        "menu": "menu-accident-logs",
+        "form_title": "Edit Accident Log",
+    }
+    return render(request, 'vms_app/forms.html', context)

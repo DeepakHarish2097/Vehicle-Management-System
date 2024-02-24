@@ -148,7 +148,6 @@ class Productivity(models.Model):
     fourth_trip_ton = models.IntegerField(null=True, blank=True)
     fifth_trip_ton = models.IntegerField(null=True, blank=True)
     sixth_trip_ton = models.IntegerField(null=True, blank=True)
-    
 
     def __str__(self) -> str:
         return f"[{self.vehicle}] {self.driver}"
@@ -162,21 +161,26 @@ class Productivity(models.Model):
 
     @property
     def total_ton(self):
-        total_ton = self.first_trip_ton+self.second_trip_ton+self.third_trip_ton+self.fourth_trip_ton+self.fifth_trip_ton+self.sixth_trip_ton
+        total_ton = self.first_trip_ton + self.second_trip_ton + self.third_trip_ton + self.fourth_trip_ton + \
+                    self.fifth_trip_ton + self.sixth_trip_ton
         return total_ton
+
 
 # =================================== Hasan 20240217 ==============================================
 class TransferRegister(models.Model):
     vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT)
-    transferred_date = models.DateField()
+    transfer_date = models.DateField()
     from_zone = models.ForeignKey(Zone, related_name='from_zones_tl', on_delete=models.PROTECT)
     to_zone = models.ForeignKey(Zone, related_name='to_zones_tl', on_delete=models.PROTECT)
     requested_by = models.ForeignKey(Employee, on_delete=models.PROTECT)
     reason = models.TextField()
-    log_no = models.PositiveIntegerField(null=True, blank=True)  # hard copy row serial number
+    log_no = models.PositiveIntegerField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.vehicle}({self.from_zone} -> {self.to_zone})"
 
 
-# class AccidentLog(models.Model):
+class AccidentLog(models.Model):
     choices_accident_severity = [
         ('Fatality', 'Fatality'),
         ('Near Miss', 'Near Miss'),
@@ -204,9 +208,11 @@ class TransferRegister(models.Model):
     action_needed = models.TextField()
     remark = models.TextField()
 
+
 class IncidentLog(models.Model):
-    IncidentTypesChoices = [('Accident', 'Accident'), ('Breakdown', 'Breakdown'), ('General Maintanence', 'General Maintanence')]
-    incident_type=models.CharField(max_length=100, choices=IncidentTypesChoices)
+    IncidentTypesChoices = [('Accident', 'Accident'), ('Breakdown', 'Breakdown'),
+                            ('General Maintenance', 'General Maintenance')]
+    incident_type = models.CharField(max_length=100, choices=IncidentTypesChoices)
     vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT)
     driver_name = models.CharField(max_length=50, null=True, blank=True)
     age = models.PositiveIntegerField(null=True, blank=True)
@@ -217,15 +223,16 @@ class IncidentLog(models.Model):
     incident_brief = models.TextField()
     cause_of_incident = models.TextField()
     investigated_by = models.CharField(max_length=200, null=True, blank=True)
-    driver_comment=models.TextField()
-    zonalmanager_comment = models.TextField()
-    mechanic_comment=models.TextField()
-    estimatedrepair_cost = models.FloatField(null=True, blank=True)
-    cost_responsible = models.CharField(max_length=250, choices=[('Company', 'Company'), ('Insurance', 'Insurance'), ('Thirdparty', 'Thirdparty')])
-    sent_to = models.ForeignKey(Workshop, related_name='workshopsincidents_set', on_delete=models.PROTECT, null=True, blank=True)
+    driver_comment = models.TextField()
+    zonal_manager_comment = models.TextField()
+    mechanic_comment = models.TextField()
+    estimated_repair_cost = models.FloatField(null=True, blank=True)
+    cost_responsible = models.CharField(max_length=250, choices=[('Company', 'Company'), ('Insurance', 'Insurance'),
+                                                                 ('Third party', 'Third party')])
+    sent_to = models.ForeignKey(Workshop, related_name='workshops_incidents_set', on_delete=models.PROTECT, null=True,
+                                blank=True)
     action_needed = models.TextField()
     remark = models.TextField()
 
-class MaintanenceHistory(models.Model):
-    pass
-
+# class MaintenanceHistory(models.Model):
+#     pass
