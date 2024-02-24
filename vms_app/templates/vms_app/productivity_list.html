@@ -6,7 +6,7 @@
 <div class="row">
     <div class="col-auto">
         <a href="{% url "add_productivity" %}" class="btn btn-primary">
-            <span class="tf-icons bx bx-list-plus"></span> Start Vehicle
+            <span class="tf-icons bx bx-list-plus"></span> Start Shift
         </a>
     </div>
     <div class="col-auto">
@@ -61,41 +61,10 @@
                             <i class='bx bx-repost'></i>
                         </button>
                         {% endif %}
-                        <button class="btn btn-sm btn-danger btn-icon mx-1"  data-bs-toggle="modal" data-bs-target="#stop-productivity-{{productivity.id}}">
+                        <a class="btn btn-sm btn-danger btn-icon mx-1" href="{% url 'end_productivity' productivity.id %}">
                             <i class="bx bxs-stopwatch"></i>
-                        </button>
+                        </a>
                     {% endif %}
-                </div>
-            </div>
-        </div>
-        <div class="modal fade" id="stop-productivity-{{productivity.id}}" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel1">Stop Vehicle</h5>
-                        <button
-                        type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal"
-                        aria-label="Close"
-                        ></button>
-                    </div>
-                    <form action="{% url "end_productivity" productivity.id %}" method="post">
-                        <div class="modal-body">
-                            {% csrf_token %}
-                            <label for="tripTon">Trip Ton</label>
-                            <input type="number" class="form-control" name="trip_ton" id="tripTon" required="">
-                            <p class="mt-3">Are you sure you want to Stop Productivity for: <b>{{productivity}}</b>?</p>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                                Close
-                            </button>
-                            <button class="btn btn-danger">
-                                <i class="bx bxs-stopwatch"></i> Stop Vehicle
-                            </button>
-                        </div>
-                    </form>
                 </div>
             </div>
         </div>

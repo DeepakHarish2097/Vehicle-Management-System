@@ -130,13 +130,22 @@ class Vehicle(models.Model):
 
 
 class Productivity(models.Model):
-    vehicle = models.ForeignKey(Vehicle, related_name="vehicle_productivity_set", on_delete=models.SET_NULL, null=True,
-                                blank=True, limit_choices_to={'is_active': True, 'is_working': False})
+    choices_shifts = [
+        ('I', 'I'),
+        ('II', 'II'),
+        ('III', 'III')
+    ]
+    vehicle = models.ForeignKey(Vehicle, related_name="vehicle_productivity_set", on_delete=models.PROTECT,
+                                limit_choices_to={'is_active': True, 'is_working': False})
     start = models.DateTimeField(default=timezone.now)
     out_km = models.FloatField(null=True, blank=True, default=0.0)
+    start_image = models.ImageField(upload_to='productivity_start/')
     end = models.DateTimeField(null=True, blank=True)
     in_km = models.FloatField(null=True, blank=True, default=0.0)
-    shift = models.CharField(max_length=100, null=True, blank=True)
+    end_image = models.ImageField(upload_to='productivity_end/', null=True, blank=True)
+    created_on = models.DateTimeField(auto_now_add=True)
+    created_date = models.DateField(auto_now_add=True)
+    shift = models.CharField(max_length=100, choices=choices_shifts)
     routes = models.ManyToManyField(Route, blank=False, limit_choices_to={'is_active': True})
     estimation = models.IntegerField(null=True, blank=True)
     driver = models.CharField(max_length=500, default='Vendor')
@@ -148,6 +157,7 @@ class Productivity(models.Model):
     fourth_trip_ton = models.IntegerField(null=True, blank=True)
     fifth_trip_ton = models.IntegerField(null=True, blank=True)
     sixth_trip_ton = models.IntegerField(null=True, blank=True)
+    trip_ton = models.IntegerField(default=0, null=True, blank=True)
 
     def __str__(self) -> str:
         return f"[{self.vehicle}] {self.driver}"
@@ -164,6 +174,9 @@ class Productivity(models.Model):
         total_ton = self.first_trip_ton + self.second_trip_ton + self.third_trip_ton + self.fourth_trip_ton + \
                     self.fifth_trip_ton + self.sixth_trip_ton
         return total_ton
+    
+    class Meta:
+        unique_together = ['shift', 'vehicle', 'created_date']
 
 
 # =================================== Hasan 20240217 ==============================================

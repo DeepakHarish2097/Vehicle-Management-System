@@ -69,10 +69,22 @@ class EmployeeEditForm(forms.ModelForm):
 class ProductivityForm(forms.ModelForm):
     class Meta:
         model = Productivity
-        fields = ['vehicle', 'start', 'routes', 'driver']
+        fields = ['shift', 'vehicle', 'start', 'out_km', 'routes', 'driver', 'start_image']
         widgets = {
             'start': DateTimeInput()
         }
+
+
+class ProductivityEndForm(forms.ModelForm):
+    class Meta:
+        model = Productivity
+        fields = ['trip_ton', 'in_km', 'end_image']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['trip_ton'].required = True
+        self.fields['in_km'].required = True
+        self.fields['end_image'].required = True
 
 
 class ProductivityReportForm(forms.Form):

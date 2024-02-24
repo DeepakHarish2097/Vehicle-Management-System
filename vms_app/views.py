@@ -5,7 +5,7 @@ from .models import Employee, Vehicle, Route, Productivity, Zone, Ward, \
     TransferRegister, AccidentLog
 from .forms import VehicleForm, RouteForm, EmployeeRegistrationForm, \
     ProductivityForm, ProductivityReportForm, EmployeeEditForm, ZoneForm, \
-    WardForm, TransferRegisterForm, AccidentLogForm
+    WardForm, TransferRegisterForm, AccidentLogForm, ProductivityEndForm
 from .decorators import superuser_required, active_required
 from django.contrib.auth import logout
 from django.utils import timezone
@@ -413,7 +413,7 @@ def productivity_list(request):
 def add_productivity(request):
     form = ProductivityForm()
 
-    if request.user.is_staff:
+    if not request.user.is_superuser:
         vehicle = Vehicle.objects.filter(supervisor=request.user, is_working=False)
         routes = Route.objects.filter(supervisor=request.user)
 
@@ -421,7 +421,7 @@ def add_productivity(request):
         form.fields['routes'].queryset = routes
 
     if request.method == "POST":
-        form = ProductivityForm(request.POST)
+        form = ProductivityForm(request.POST, request.FILES)
         if form.is_valid():
             clean_data = form.cleaned_data
             productivity = form.save(commit=False)
@@ -439,7 +439,7 @@ def add_productivity(request):
     context = {
         "form": form,
         "menu": "menu-productivity",
-        "form_title": "Add Productivity",
+        "form_title": "Start Shift",
     }
     return render(request, 'vms_app/forms.html', context)
 
@@ -453,7 +453,7 @@ def edit_productivity(request, id: int):
     vehicle.save()
     form = ProductivityForm(instance=productivity)
 
-    if request.user.is_staff:
+    if not request.user.is_superuser:
         vehicle = Vehicle.objects.filter(supervisor=request.user, is_working=False)
         routes = Route.objects.filter(supervisor=request.user)
 
@@ -461,7 +461,7 @@ def edit_productivity(request, id: int):
         form.fields['routes'].queryset = routes
 
     if request.method == "POST":
-        form = ProductivityForm(request.POST, instance=productivity)
+        form = ProductivityForm(request.POST, request.FILES, instance=productivity)
         if form.is_valid():
             clean_data = form.cleaned_data
             productivity = form.save(commit=False)
@@ -479,7 +479,7 @@ def edit_productivity(request, id: int):
     context = {
         "form": form,
         "menu": "menu-productivity",
-        "form_title": "Edit Productivity",
+        "form_title": "Edit Shift",
     }
     return render(request, 'vms_app/forms.html', context)
 
@@ -488,7 +488,6 @@ def edit_productivity(request, id: int):
 @active_required
 def close_trip(request, id: int):
     productivity = Productivity.objects.get(pk=id)
-    productivity.total_trip += 1 if productivity.total_trip < 6 else 0
 
     if request.method == "POST":
         trip_ton = int(request.POST.get("trip_ton", 0))
@@ -505,6 +504,7 @@ def close_trip(request, id: int):
     else:
         productivity.sixth_trip_ton = trip_ton
 
+    productivity.total_trip += 1 if productivity.total_trip < 6 else 0
     productivity.save()
     return redirect('productivity_list')
 
@@ -513,29 +513,40 @@ def close_trip(request, id: int):
 @active_required
 def end_productivity(request, id: int):
     productivity = Productivity.objects.get(pk=id)
+    form = ProductivityEndForm(instance=productivity)
 
     if request.method == "POST":
         trip_ton = int(request.POST.get("trip_ton", 0))
-    if productivity.total_trip == 1:
-        productivity.first_trip_ton = trip_ton
-    elif productivity.total_trip == 2:
-        productivity.second_trip_ton = trip_ton
-    elif productivity.total_trip == 3:
-        productivity.third_trip_ton = trip_ton
-    elif productivity.total_trip == 4:
-        productivity.fourth_trip_ton = trip_ton
-    elif productivity.total_trip == 5:
-        productivity.fifth_trip_ton = trip_ton
-    else:
-        productivity.sixth_trip_ton = trip_ton
+        form = ProductivityEndForm(request.POST, request.FILES, instance=productivity)
+        if form.is_valid():
+            productivity = form.save(commit=False)
+            if productivity.total_trip == 1:
+                productivity.first_trip_ton = trip_ton
+            elif productivity.total_trip == 2:
+                productivity.second_trip_ton = trip_ton
+            elif productivity.total_trip == 3:
+                productivity.third_trip_ton = trip_ton
+            elif productivity.total_trip == 4:
+                productivity.fourth_trip_ton = trip_ton
+            elif productivity.total_trip == 5:
+                productivity.fifth_trip_ton = trip_ton
+            else:
+                productivity.sixth_trip_ton = trip_ton
 
-    productivity.end = timezone.now()
-    productivity.day_production = round((timezone.now() - productivity.start).total_seconds() / 60)
-    productivity.save()
-    vehicle = productivity.vehicle
-    vehicle.is_working = False
-    vehicle.save()
-    return redirect('productivity_list')
+            productivity.end = timezone.now()
+            productivity.day_production = round((timezone.now() - productivity.start).total_seconds() / 60)
+            productivity.save()
+            vehicle = productivity.vehicle
+            vehicle.is_working = False
+            vehicle.save()
+            return redirect('productivity_list')
+        
+    context = {
+        "form": form,
+        "menu": "menu-productivity",
+        "form_title": "End Shift",
+    }
+    return render(request, 'vms_app/forms.html', context)
 
 
 def productivity_excel_report(filename, productivity):
