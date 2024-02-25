@@ -76,6 +76,8 @@ class Route(models.Model):
     zone = models.ForeignKey(Zone, related_name='zone_routes_set', on_delete=models.PROTECT)
     ward = models.ForeignKey(Ward, related_name='ward_routes_set', on_delete=models.PROTECT)
     street = models.CharField(max_length=500)
+    km_estimation = models.IntegerField(null=True, blank=True, default=50)
+    time_estimation = models.TimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     supervisor = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='route_supervised_by', limit_choices_to={'is_active': True})
@@ -98,6 +100,7 @@ class Vehicle(models.Model):
     is_working = models.BooleanField(default=False)
     supervisor = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='vehicle_supervised_by', limit_choices_to={'is_active': True})
+    load_estimation = models.IntegerField(default=1000) #in kg
     remark = models.TextField(null=True, blank=True)
 
     created_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True,
@@ -133,7 +136,8 @@ class Productivity(models.Model):
     choices_shifts = [
         ('I', 'I'),
         ('II', 'II'),
-        ('III', 'III')
+        ('III', 'III'),
+        ('Others', 'Others')
     ]
     vehicle = models.ForeignKey(Vehicle, related_name="vehicle_productivity_set", on_delete=models.PROTECT,
                                 limit_choices_to={'is_active': True, 'is_working': False})
@@ -249,3 +253,24 @@ class IncidentLog(models.Model):
 
 # class MaintenanceHistory(models.Model):
 #     pass
+
+
+class TripHistory(models.Model):
+    choices_shifts = [
+        ('I', 'I'),
+        ('II', 'II'),
+        ('III', 'III'),
+        ('Others', 'Others')
+    ]
+    vehicle = models.ForeignKey(Vehicle, related_name='vehicle_trips_set', on_delete=models.PROTECT)
+    trip_date = models.DateField()
+    shift = models.CharField(max_length=20, choices=choices_shifts)
+    trip_count=models.IntegerField()
+    trip_load = models.IntegerField() #in kg
+    trip_efficiency = models.FloatField(default=0)
+    trip_start_time = models.DateTimeField(auto_now_add=True)
+    updted_on = models.DateTimeField(auto_now=True)
+    trip_end_time=models.DateTimeField(null=True, blank=True)
+
+    
+    

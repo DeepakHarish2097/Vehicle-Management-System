@@ -55,3 +55,9 @@ class IncidentLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = IncidentLog
         fields = '__all__'
+
+
+class TripHistorySerializer(serializers.ModelSerializer):
+    class Meta: 
+        model = TripHistory
+        fields = '__all__'

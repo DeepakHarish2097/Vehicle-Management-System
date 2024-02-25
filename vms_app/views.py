@@ -419,6 +419,12 @@ def add_productivity(request):
 
         form.fields['vehicle'].queryset = vehicle
         form.fields['routes'].queryset = routes
+    
+    else:
+        form.fields['vehicle'].queryset = Vehicle.objects.filter(is_working=False)
+        form.fields['routes'].queryset = Route.objects.all()
+    
+
 
     if request.method == "POST":
         form = ProductivityForm(request.POST, request.FILES)
