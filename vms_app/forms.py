@@ -1,6 +1,6 @@
 from django import forms
 from .models import Employee, Vehicle, Route, Productivity, Zone, Ward, \
-    TransferRegister, AccidentLog
+    TransferRegister, AccidentLog, Shift
 from django.contrib.auth.forms import UserCreationForm
 from django.forms.widgets import DateInput
 
@@ -41,7 +41,7 @@ class WardForm(forms.ModelForm):
 class RouteForm(forms.ModelForm):
     class Meta:
         model = Route
-        fields = ("zone", "ward", "street", "supervisor", "estimation")
+        fields = ("zone", "ward", "street", "supervisor", "time_estimation", "km_estimation")
 
 
 class EmployeeRegistrationForm(UserCreationForm):
@@ -88,6 +88,32 @@ class ProductivityEndForm(forms.ModelForm):
 
 
 class ProductivityReportForm(forms.Form):
+    start = forms.DateField()
+    end = forms.DateField()
+
+
+class ShiftForm(forms.ModelForm):
+    class Meta:
+        model = Shift
+        fields = ['shift_name', 'vehicle', 'start', 'out_km', 'routes', 'driver', 'start_image']
+        widgets = {
+            'start': DateTimeInput()
+        }
+
+
+class ShiftEndForm(forms.ModelForm):
+    class Meta:
+        model = Shift
+        fields = ['trip_ton', 'in_km', 'end_image']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['trip_ton'].required = True
+        self.fields['in_km'].required = True
+        self.fields['end_image'].required = True
+
+
+class ShiftReportForm(forms.Form):
     start = forms.DateField()
     end = forms.DateField()
 

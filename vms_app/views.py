@@ -2,10 +2,11 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import Employee, Vehicle, Route, Productivity, Zone, Ward, \
-    TransferRegister, AccidentLog
+    TransferRegister, AccidentLog, Shift
 from .forms import VehicleForm, RouteForm, EmployeeRegistrationForm, \
     ProductivityForm, ProductivityReportForm, EmployeeEditForm, ZoneForm, \
-    WardForm, TransferRegisterForm, AccidentLogForm, ProductivityEndForm
+    WardForm, TransferRegisterForm, AccidentLogForm, ProductivityEndForm, \
+    ShiftForm, ShiftEndForm, ShiftReportForm
 from .decorators import superuser_required, active_required
 from django.contrib.auth import logout
 from django.utils import timezone
@@ -370,6 +371,88 @@ def edit_user(request):
         "menu": "menu-staff",
     }
     return render(request, 'vms_app/edit_profile.html', context)
+
+
+# /////////////////// Shift Views \\\\\\\\\\\\\\\\\\\
+@login_required(login_url='login')
+@active_required
+def shift_list(request):
+    shift = Shift.objects.filter(start__date=timezone.now().date())
+    query = request.GET.get("query", None)
+    type = request.GET.get("type", None)
+
+    if type and query:
+        today_shift = Shift.objects.filter(start__date=timezone.now().date())
+        if type == "production":
+            if query == "highest":
+                shift = today_shift.order_by('-day_production')
+            elif query == "least":
+                shift = today_shift.order_by('day_production')
+            else:
+                shift = Shift.objects.all()
+        elif type == "estimation":
+            if query == "highest":
+                shift = today_shift.order_by('-estimation')
+            else:
+                shift = today_shift.order_by('estimation')
+        else:
+            if query == "unused":
+                all_vehicles = Vehicle.objects.filter(is_active=True)
+                prod_vehicles = Vehicle.objects.filter(vehicle_shift_set__start__date__gte=timezone.now().date())
+                shift = [i for i in all_vehicles if i not in prod_vehicles]
+
+    context = {
+        "menu": "menu-shift",
+        "shift_list": shift,
+        "type": type,
+    }
+    return render(request, 'vms_app/shift_list.html', context)
+
+
+@login_required(login_url='login')
+@active_required
+def add_shift(request):
+    form = ShiftForm()
+
+    if not request.user.is_superuser:
+        vehicle = Vehicle.objects.filter(supervisor=request.user, is_working=False)
+        routes = Route.objects.filter(supervisor=request.user)
+
+        form.fields['vehicle'].queryset = vehicle
+        form.fields['routes'].queryset = routes
+    
+    else:
+        form.fields['vehicle'].queryset = Vehicle.objects.filter(is_working=False)
+        form.fields['routes'].queryset = Route.objects.all()
+    
+
+
+    if request.method == "POST":
+        form = ShiftForm(request.POST, request.FILES)
+        if form.is_valid():
+            clean_data = form.cleaned_data
+            shift = form.save(commit=False)
+            total_time_estimation = 0
+            total_km_estimation = 0
+            for route in clean_data['routes']:
+                total_time_estimation += route.time_estimation
+                total_km_estimation += route.time_estimation
+            shift.time_estimation = total_time_estimation
+            shift.km_estimation = total_km_estimation
+            shift.save()
+            vehicle = shift.vehicle
+            vehicle.is_working = True
+            vehicle.save()
+            shift.routes.set(clean_data['routes'])
+            return redirect('shift_list')
+
+    context = {
+        "form": form,
+        "menu": "menu-shift",
+        "form_title": "Start Shift",
+    }
+    return render(request, 'vms_app/forms.html', context)
+
 
 
 # /////////////////// Productivity Views \\\\\\\\\\\\\\\\\\\

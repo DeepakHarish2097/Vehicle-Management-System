@@ -29,7 +29,8 @@
                     <th>Ward</th>
                     <th>Street</th>
                     <th>Supervisor</th>
-                    <th>Estimation</th>
+                    <th>Time Estimation</th>
+                    <th>Km Estimation</th>
                     <th></th>
                 </tr>
             </thead>
@@ -40,7 +41,8 @@
                     <td>{{route.ward}}</td>
                     <td>{{route.street}}</td>
                     <td>{{route.supervisor}}</td>
-                    <td>{{route.estimation}}</td>
+                    <td>{{route.time_estimation}}</td>
+                    <td>{{route.km_estimation}}</td>
                     <td>
                         {% if request.user.is_superuser %}
                         <div class="dropdown">

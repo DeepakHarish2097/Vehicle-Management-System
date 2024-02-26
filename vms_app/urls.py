@@ -59,6 +59,10 @@ urlpatterns = [
     path('productivity-month-report/', views.productivity_month_report, name='productivity_month_report'),
     path('productivity-custom-report/', views.productivity_custom_report, name='productivity_custom_report'),
 
+    # Shift Views
+    path('shift-list/', views.shift_list, name="shift_list"),
+    path('add-shift/', views.add_shift, name='add_shift'),
+
     # Transfer Registry Urls
     path('transfer-register-list/', views.transfer_register_view, name='transfer_register_view'),
     path('add-transfer-register/', views.create_transfer_register, name='create_transfer_register'),
