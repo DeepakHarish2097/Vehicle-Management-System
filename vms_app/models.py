@@ -235,6 +235,24 @@ class Shift(models.Model):
         unique_together = ['shift_name', 'vehicle', 'created_date']
 
 
+class TripHistory(models.Model):
+    choices_shifts = [
+        ('I', 'I'),
+        ('II', 'II'),
+        ('III', 'III'),
+        ('Others', 'Others')
+    ]
+    vehicle = models.ForeignKey(Vehicle, related_name='vehicle_trips_set', on_delete=models.PROTECT)
+    trip_date = models.DateField()
+    shift = models.CharField(max_length=20, choices=choices_shifts)
+    trip_count = models.IntegerField()
+    trip_load = models.IntegerField()  # in kg
+    trip_efficiency = models.FloatField(default=0)
+    trip_start_time = models.DateTimeField(auto_now_add=True)
+    updted_on = models.DateTimeField(auto_now=True)
+    trip_end_time = models.DateTimeField(null=True, blank=True)
+
+
 # =================================== Hasan 20240217 ==============================================
 class TransferRegister(models.Model):
     vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT)
@@ -308,19 +326,3 @@ class IncidentLog(models.Model):
 #     pass
 
 
-class TripHistory(models.Model):
-    choices_shifts = [
-        ('I', 'I'),
-        ('II', 'II'),
-        ('III', 'III'),
-        ('Others', 'Others')
-    ]
-    vehicle = models.ForeignKey(Vehicle, related_name='vehicle_trips_set', on_delete=models.PROTECT)
-    trip_date = models.DateField()
-    shift = models.CharField(max_length=20, choices=choices_shifts)
-    trip_count = models.IntegerField()
-    trip_load = models.IntegerField()  # in kg
-    trip_efficiency = models.FloatField(default=0)
-    trip_start_time = models.DateTimeField(auto_now_add=True)
-    updted_on = models.DateTimeField(auto_now=True)
-    trip_end_time = models.DateTimeField(null=True, blank=True)
