@@ -100,7 +100,7 @@ class Vehicle(models.Model):
     is_working = models.BooleanField(default=False)
     supervisor = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='vehicle_supervised_by', limit_choices_to={'is_active': True})
-    load_estimation = models.IntegerField(default=1000) #in kg
+    load_estimation = models.IntegerField(default=1000)  # in kg
     remark = models.TextField(null=True, blank=True)
 
     created_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True,
@@ -150,7 +150,7 @@ class Productivity(models.Model):
     created_on = models.DateTimeField(auto_now_add=True)
     created_date = models.DateField(auto_now_add=True)
     shift = models.CharField(max_length=100, choices=choices_shifts)
-    routes = models.ManyToManyField(Route, blank=False, limit_choices_to={'is_active': True})
+    routes = models.ManyToManyField(Route, blank=False, limit_choices_to={'is_active': True, 'is_working': False})
     estimation = models.IntegerField(null=True, blank=True)
     driver = models.CharField(max_length=500, default='Vendor')
     day_production = models.IntegerField(null=True, blank=True)
@@ -178,7 +178,7 @@ class Productivity(models.Model):
         total_ton = self.first_trip_ton + self.second_trip_ton + self.third_trip_ton + self.fourth_trip_ton + \
                     self.fifth_trip_ton + self.sixth_trip_ton
         return total_ton
-    
+
     class Meta:
         unique_together = ['shift', 'vehicle', 'created_date']
 
@@ -201,7 +201,7 @@ class Shift(models.Model):
     created_on = models.DateTimeField(auto_now_add=True)
     created_date = models.DateField(auto_now_add=True)
     shift_name = models.CharField(max_length=100, choices=choices_shifts)
-    routes = models.ManyToManyField(Route, blank=False, limit_choices_to={'is_active': True})
+    routes = models.ManyToManyField(Route, blank=False, limit_choices_to={'is_active': True, 'is_working': False})
     time_estimation = models.IntegerField(null=True, blank=True)
     km_estimation = models.IntegerField(null=True, blank=True)
     driver = models.CharField(max_length=500, default='Vendor')
@@ -230,7 +230,7 @@ class Shift(models.Model):
         total_ton = self.first_trip_ton + self.second_trip_ton + self.third_trip_ton + self.fourth_trip_ton + \
                     self.fifth_trip_ton + self.sixth_trip_ton
         return total_ton
-    
+
     class Meta:
         unique_together = ['shift_name', 'vehicle', 'created_date']
 
@@ -303,6 +303,7 @@ class IncidentLog(models.Model):
     action_needed = models.TextField()
     remark = models.TextField()
 
+
 # class MaintenanceHistory(models.Model):
 #     pass
 
@@ -317,12 +318,9 @@ class TripHistory(models.Model):
     vehicle = models.ForeignKey(Vehicle, related_name='vehicle_trips_set', on_delete=models.PROTECT)
     trip_date = models.DateField()
     shift = models.CharField(max_length=20, choices=choices_shifts)
-    trip_count=models.IntegerField()
-    trip_load = models.IntegerField() #in kg
+    trip_count = models.IntegerField()
+    trip_load = models.IntegerField()  # in kg
     trip_efficiency = models.FloatField(default=0)
     trip_start_time = models.DateTimeField(auto_now_add=True)
     updted_on = models.DateTimeField(auto_now=True)
-    trip_end_time=models.DateTimeField(null=True, blank=True)
-
-    
-    
+    trip_end_time = models.DateTimeField(null=True, blank=True)

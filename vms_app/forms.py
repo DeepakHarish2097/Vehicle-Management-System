@@ -2,7 +2,7 @@ from django import forms
 from .models import Employee, Vehicle, Route, Productivity, Zone, Ward, \
     TransferRegister, AccidentLog, Shift
 from django.contrib.auth.forms import UserCreationForm
-from django.forms.widgets import DateInput
+from django.forms.widgets import DateInput, TimeInput
 
 
 class DateTimeInput(forms.DateTimeInput):

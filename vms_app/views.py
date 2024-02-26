@@ -378,35 +378,12 @@ def edit_user(request):
 @active_required
 def shift_list(request):
     shift = Shift.objects.filter(start__date=timezone.now().date())
-    query = request.GET.get("query", None)
-    type = request.GET.get("type", None)
-
-    if type and query:
-        today_shift = Shift.objects.filter(start__date=timezone.now().date())
-        if type == "production":
-            if query == "highest":
-                shift = today_shift.order_by('-day_production')
-            elif query == "least":
-                shift = today_shift.order_by('day_production')
-            else:
-                shift = Shift.objects.all()
-        elif type == "estimation":
-            if query == "highest":
-                shift = today_shift.order_by('-estimation')
-            else:
-                shift = today_shift.order_by('estimation')
-        else:
-            if query == "unused":
-                all_vehicles = Vehicle.objects.filter(is_active=True)
-                prod_vehicles = Vehicle.objects.filter(vehicle_shift_set__start__date__gte=timezone.now().date())
-                shift = [i for i in all_vehicles if i not in prod_vehicles]
-
     context = {
         "menu": "menu-shift",
         "shift_list": shift,
         "type": type,
     }
-    return render(request, 'vms_app/shift_list.html', context)
+    return render(request, 'vms_app/shift_views/shift_list.html', context)
 
 
 @login_required(login_url='login')
@@ -416,16 +393,10 @@ def add_shift(request):
 
     if not request.user.is_superuser:
         vehicle = Vehicle.objects.filter(supervisor=request.user, is_working=False)
-        routes = Route.objects.filter(supervisor=request.user)
+        routes = Route.objects.filter(supervisor=request.user, is_working=False, is_active=True)
 
         form.fields['vehicle'].queryset = vehicle
         form.fields['routes'].queryset = routes
-    
-    else:
-        form.fields['vehicle'].queryset = Vehicle.objects.filter(is_working=False)
-        form.fields['routes'].queryset = Route.objects.all()
-    
-
 
     if request.method == "POST":
         form = ShiftForm(request.POST, request.FILES)
@@ -437,6 +408,8 @@ def add_shift(request):
             for route in clean_data['routes']:
                 total_time_estimation += route.time_estimation
                 total_km_estimation += route.time_estimation
+                route.is_working = True
+                route.save()
             shift.time_estimation = total_time_estimation
             shift.km_estimation = total_km_estimation
             shift.save()
@@ -453,6 +426,121 @@ def add_shift(request):
     }
     return render(request, 'vms_app/forms.html', context)
 
+
+@login_required(login_url='login')
+@active_required
+def edit_shift(request, id: int):
+    shift = Shift.objects.get(pk=id)
+    vehicle = shift.vehicle
+    vehicle.is_working = False
+    vehicle.save()
+    for route in shift.routes.all():
+        route.is_working = False
+        route.save()
+    form = ShiftForm(instance=shift)
+
+    if not request.user.is_superuser:
+        vehicle = Vehicle.objects.filter(supervisor=request.user, is_working=False)
+        routes = Route.objects.filter(supervisor=request.user, is_working=False, is_active=True)
+
+        form.fields['vehicle'].queryset = vehicle
+        form.fields['routes'].queryset = routes
+
+    if request.method == "POST":
+        form = ShiftForm(request.POST, request.FILES, instance=shift)
+        if form.is_valid():
+            clean_data = form.cleaned_data
+            shift = form.save(commit=False)
+            total_km_estimation = 0
+            total_time_estimation = 0
+            for route in clean_data['routes']:
+                total_time_estimation += route.time_estimation
+                total_km_estimation += route.time_estimation
+                route.is_working = True
+                route.save()
+            shift.time_estimation = total_time_estimation
+            shift.km_estimation = total_km_estimation
+            shift.save()
+            vehicle = shift.vehicle
+            vehicle.is_working = True
+            vehicle.save()
+            shift.routes.set(clean_data['routes'])
+            return redirect('shift_list')
+
+    context = {
+        "form": form,
+        "menu": "menu-shift",
+        "form_title": "Edit Shift",
+    }
+    return render(request, 'vms_app/forms.html', context)
+
+
+@login_required(login_url='login')
+@active_required
+def close_trip(request, id: int):
+    shift = Shift.objects.get(pk=id)
+
+    if request.method == "POST":
+        trip_ton = int(request.POST.get("trip_ton", 0))
+        if shift.total_trip == 1:
+            shift.first_trip_ton = trip_ton
+        elif shift.total_trip == 2:
+            shift.second_trip_ton = trip_ton
+        elif shift.total_trip == 3:
+            shift.third_trip_ton = trip_ton
+        elif shift.total_trip == 4:
+            shift.fourth_trip_ton = trip_ton
+        elif shift.total_trip == 5:
+            shift.fifth_trip_ton = trip_ton
+        else:
+            shift.sixth_trip_ton = trip_ton
+
+    shift.total_trip += 1 if shift.total_trip < 6 else 0
+    shift.save()
+    return redirect('shift_list')
+
+
+@login_required(login_url='login')
+@active_required
+def end_shift(request, id: int):
+    shift = Shift.objects.get(pk=id)
+    form = ShiftEndForm(instance=shift)
+
+    if request.method == "POST":
+        trip_ton = int(request.POST.get("trip_ton", 0))
+        form = ShiftEndForm(request.POST, request.FILES, instance=shift)
+        if form.is_valid():
+            shift = form.save(commit=False)
+            if shift.total_trip == 1:
+                shift.first_trip_ton = trip_ton
+            elif shift.total_trip == 2:
+                shift.second_trip_ton = trip_ton
+            elif shift.total_trip == 3:
+                shift.third_trip_ton = trip_ton
+            elif shift.total_trip == 4:
+                shift.fourth_trip_ton = trip_ton
+            elif shift.total_trip == 5:
+                shift.fifth_trip_ton = trip_ton
+            else:
+                shift.sixth_trip_ton = trip_ton
+
+            shift.end = timezone.now()
+            shift.day_production = round((timezone.now() - shift.start).total_seconds() / 60)
+            shift.save()
+            vehicle = shift.vehicle
+            vehicle.is_working = False
+            vehicle.save()
+            for route in shift.routes.all():
+                route.is_working = False
+                route.save()
+            return redirect('shift_list')
+
+    context = {
+        "form": form,
+        "menu": "menu-shift",
+        "form_title": "End Shift",
+    }
+    return render(request, 'vms_app/forms.html', context)
 
 
 # /////////////////// Productivity Views \\\\\\\\\\\\\\\\\\\
@@ -502,12 +590,10 @@ def add_productivity(request):
 
         form.fields['vehicle'].queryset = vehicle
         form.fields['routes'].queryset = routes
-    
+
     else:
         form.fields['vehicle'].queryset = Vehicle.objects.filter(is_working=False)
         form.fields['routes'].queryset = Route.objects.all()
-    
-
 
     if request.method == "POST":
         form = ProductivityForm(request.POST, request.FILES)
@@ -575,31 +661,6 @@ def edit_productivity(request, id: int):
 
 @login_required(login_url='login')
 @active_required
-def close_trip(request, id: int):
-    productivity = Productivity.objects.get(pk=id)
-
-    if request.method == "POST":
-        trip_ton = int(request.POST.get("trip_ton", 0))
-    if productivity.total_trip == 1:
-        productivity.first_trip_ton = trip_ton
-    elif productivity.total_trip == 2:
-        productivity.second_trip_ton = trip_ton
-    elif productivity.total_trip == 3:
-        productivity.third_trip_ton = trip_ton
-    elif productivity.total_trip == 4:
-        productivity.fourth_trip_ton = trip_ton
-    elif productivity.total_trip == 5:
-        productivity.fifth_trip_ton = trip_ton
-    else:
-        productivity.sixth_trip_ton = trip_ton
-
-    productivity.total_trip += 1 if productivity.total_trip < 6 else 0
-    productivity.save()
-    return redirect('productivity_list')
-
-
-@login_required(login_url='login')
-@active_required
 def end_productivity(request, id: int):
     productivity = Productivity.objects.get(pk=id)
     form = ProductivityEndForm(instance=productivity)
@@ -629,7 +690,7 @@ def end_productivity(request, id: int):
             vehicle.is_working = False
             vehicle.save()
             return redirect('productivity_list')
-        
+
     context = {
         "form": form,
         "menu": "menu-productivity",
