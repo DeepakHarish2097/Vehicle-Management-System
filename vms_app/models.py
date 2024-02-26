@@ -232,7 +232,7 @@ class Shift(models.Model):
             total_km_estimation = 0
             for route in self.routes.all():
                 total_km_estimation+=route.km_estimation
-            return total_km_estimation-self.shif_km
+            return self.shif_km/total_km_estimation
         else:
             return None
     
@@ -248,8 +248,11 @@ class Shift(models.Model):
     @property
     def shift_load_efficiency(self):
         trips = self.shift_trips_set.all()
-        total_load_estimation = self.vehicle.load_estimation*len(trips)
-        return total_load/total_load_estimation
+        if trips:
+            total_load_estimation = self.vehicle.load_estimation*len(trips)
+            return total_load/total_load_estimation
+        else:
+            return None
                 
     class Meta:
         unique_together = ['shift_name', 'vehicle', 'shift_date']
@@ -265,13 +268,21 @@ class TripHistory(models.Model):
     shift = models.ForeignKey(Shift, related_name='shift_trips_set', on_delete=models.CASCADE)
     vehicle = models.ForeignKey(Vehicle, related_name='vehicle_trips_set', on_delete=models.PROTECT)
     trip_date = models.DateField()
-    shift = models.CharField(max_length=20, choices=choices_shifts)
-    trip_count = models.IntegerField()
-    trip_load = models.IntegerField()  # in kg
-    trip_efficiency = models.FloatField(default=0)
     trip_start_time = models.DateTimeField(auto_now_add=True)
     updted_on = models.DateTimeField(auto_now=True)
     trip_end_time = models.DateTimeField(null=True, blank=True)
+    trip_load = models.IntegerField()  # in kg
+    # Method Fields
+    trip_count = models.IntegerField(default=0) # method field have to be increased +1 in backend
+    trip_efficiency = models.FloatField(default=0) 
+    def save(self, *args, **kwargs):
+        if not self.trip_count:
+            existing_trips = TripHistory.objects.filter(shift=self.shift, vehicle=self.vehicle, trip_date=self.trip_date)
+            if existing_trip:
+                self.trip_count = existing_trips.count() + 1
+            else:
+                self.trip_count = 1
+        super().save(*args, **kwargs)
 
 
 
