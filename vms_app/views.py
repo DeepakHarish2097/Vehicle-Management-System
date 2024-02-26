@@ -475,72 +475,72 @@ def edit_shift(request, id: int):
     return render(request, 'vms_app/forms.html', context)
 
 
-@login_required(login_url='login')
-@active_required
-def close_trip(request, id: int):
-    shift = Shift.objects.get(pk=id)
+# @login_required(login_url='login')
+# @active_required
+# def close_trip(request, id: int):
+#     shift = Shift.objects.get(pk=id)
 
-    if request.method == "POST":
-        trip_ton = int(request.POST.get("trip_ton", 0))
-        if shift.total_trip == 1:
-            shift.first_trip_ton = trip_ton
-        elif shift.total_trip == 2:
-            shift.second_trip_ton = trip_ton
-        elif shift.total_trip == 3:
-            shift.third_trip_ton = trip_ton
-        elif shift.total_trip == 4:
-            shift.fourth_trip_ton = trip_ton
-        elif shift.total_trip == 5:
-            shift.fifth_trip_ton = trip_ton
-        else:
-            shift.sixth_trip_ton = trip_ton
+#     if request.method == "POST":
+#         trip_ton = int(request.POST.get("trip_ton", 0))
+#         if shift.total_trip == 1:
+#             shift.first_trip_ton = trip_ton
+#         elif shift.total_trip == 2:
+#             shift.second_trip_ton = trip_ton
+#         elif shift.total_trip == 3:
+#             shift.third_trip_ton = trip_ton
+#         elif shift.total_trip == 4:
+#             shift.fourth_trip_ton = trip_ton
+#         elif shift.total_trip == 5:
+#             shift.fifth_trip_ton = trip_ton
+#         else:
+#             shift.sixth_trip_ton = trip_ton
 
-    shift.total_trip += 1 if shift.total_trip < 6 else 0
-    shift.save()
-    return redirect('shift_list')
+#     shift.total_trip += 1 if shift.total_trip < 6 else 0
+#     shift.save()
+#     return redirect('shift_list')
 
 
-@login_required(login_url='login')
-@active_required
-def end_shift(request, id: int):
-    shift = Shift.objects.get(pk=id)
-    form = ShiftEndForm(instance=shift)
+# @login_required(login_url='login')
+# @active_required
+# def end_shift(request, id: int):
+#     shift = Shift.objects.get(pk=id)
+#     form = ShiftEndForm(instance=shift)
 
-    if request.method == "POST":
-        trip_ton = int(request.POST.get("trip_ton", 0))
-        form = ShiftEndForm(request.POST, request.FILES, instance=shift)
-        if form.is_valid():
-            shift = form.save(commit=False)
-            if shift.total_trip == 1:
-                shift.first_trip_ton = trip_ton
-            elif shift.total_trip == 2:
-                shift.second_trip_ton = trip_ton
-            elif shift.total_trip == 3:
-                shift.third_trip_ton = trip_ton
-            elif shift.total_trip == 4:
-                shift.fourth_trip_ton = trip_ton
-            elif shift.total_trip == 5:
-                shift.fifth_trip_ton = trip_ton
-            else:
-                shift.sixth_trip_ton = trip_ton
+#     if request.method == "POST":
+#         trip_ton = int(request.POST.get("trip_ton", 0))
+#         form = ShiftEndForm(request.POST, request.FILES, instance=shift)
+#         if form.is_valid():
+#             shift = form.save(commit=False)
+#             if shift.total_trip == 1:
+#                 shift.first_trip_ton = trip_ton
+#             elif shift.total_trip == 2:
+#                 shift.second_trip_ton = trip_ton
+#             elif shift.total_trip == 3:
+#                 shift.third_trip_ton = trip_ton
+#             elif shift.total_trip == 4:
+#                 shift.fourth_trip_ton = trip_ton
+#             elif shift.total_trip == 5:
+#                 shift.fifth_trip_ton = trip_ton
+#             else:
+#                 shift.sixth_trip_ton = trip_ton
 
-            shift.end = timezone.now()
-            shift.day_production = round((timezone.now() - shift.start).total_seconds() / 60)
-            shift.save()
-            vehicle = shift.vehicle
-            vehicle.is_working = False
-            vehicle.save()
-            for route in shift.routes.all():
-                route.is_working = False
-                route.save()
-            return redirect('shift_list')
+#             shift.end = timezone.now()
+#             shift.day_production = round((timezone.now() - shift.start).total_seconds() / 60)
+#             shift.save()
+#             vehicle = shift.vehicle
+#             vehicle.is_working = False
+#             vehicle.save()
+#             for route in shift.routes.all():
+#                 route.is_working = False
+#                 route.save()
+#             return redirect('shift_list')
 
-    context = {
-        "form": form,
-        "menu": "menu-shift",
-        "form_title": "End Shift",
-    }
-    return render(request, 'vms_app/forms.html', context)
+#     context = {
+#         "form": form,
+#         "menu": "menu-shift",
+#         "form_title": "End Shift",
+#     }
+#     return render(request, 'vms_app/forms.html', context)
 
 
 # /////////////////// Productivity Views \\\\\\\\\\\\\\\\\\\

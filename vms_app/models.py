@@ -40,7 +40,7 @@ class Employee(AbstractBaseUser, PermissionsMixin):
         return self.name
 
 
-# =======================================Hasan 20240217========================================
+
 
 class Workshop(models.Model):
     workshop_name = models.CharField(max_length=50)
@@ -69,9 +69,6 @@ class Ward(models.Model):
         return f"{self.ward_name}"
 
 
-# -----------------------------------------------------------------------------------------------
-
-
 class Route(models.Model):
     zone = models.ForeignKey(Zone, related_name='zone_routes_set', on_delete=models.PROTECT)
     ward = models.ForeignKey(Ward, related_name='ward_routes_set', on_delete=models.PROTECT)
@@ -82,7 +79,8 @@ class Route(models.Model):
     is_working = models.BooleanField(default=False)
     supervisor = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='route_supervised_by', limit_choices_to={'is_active': True})
-    # estimation = models.IntegerField()
+
+    # OBJECT LOG
     created_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='route_created_by')
     created_on = models.DateTimeField(auto_now_add=True)
@@ -110,7 +108,7 @@ class Vehicle(models.Model):
                                    related_name='vehicle_updated_by')
     updated_on = models.DateTimeField(auto_now=True)
 
-    # ===========================Hasan 20240217 ===============================================
+    
     zone = models.ForeignKey(Zone, related_name='zone_vehicles_set',
                              on_delete=models.PROTECT, null=True, blank=True)
     workshop = models.ForeignKey(Workshop, related_name='workshop_vehicles_set',
@@ -120,14 +118,12 @@ class Vehicle(models.Model):
     register_number = models.CharField(max_length=50, null=True, blank=True, unique=True)
     chassis_number = models.CharField(max_length=50, null=True, blank=True)
     vehicle_model = models.CharField(max_length=50, null=True, blank=True)
-    type = models.CharField(max_length=50, null=True, blank=True)
+    vehicle_type = models.CharField(max_length=50, null=True, blank=True)
     engine_number = models.CharField(max_length=50, null=True, blank=True)
     fc_date = models.DateField(null=True, blank=True)
     insurance = models.DateField(null=True, blank=True)
     puc = models.DateField(null=True, blank=True)  # pollution under control certificate expiry date
-
-    # -----------------------------------------------------------------------------------------------
-
+    
     def __str__(self) -> str:
         return self.vehicle_number
 
@@ -192,47 +188,71 @@ class Shift(models.Model):
     ]
     vehicle = models.ForeignKey(Vehicle, related_name="vehicle_shift_set", on_delete=models.PROTECT,
                                 limit_choices_to={'is_active': True, 'is_working': False})
-    start = models.DateTimeField(default=timezone.now)
+    shift_name = models.CharField(max_length=100, choices=choices_shifts)
+    start_time = models.DateTimeField(auto_now_add=True)
+    routes = models.ManyToManyField(Route, blank=False, limit_choices_to={'is_active': True, 'is_working': False})
     out_km = models.FloatField(null=True, blank=True, default=0.0)
     start_image = models.ImageField(upload_to='shift_start/')
-    end = models.DateTimeField(null=True, blank=True)
+    driver = models.CharField(max_length=500, default='Vendor')
+    shift_date = models.DateField(auto_now_add=True)
+    #------------------------------------------------------------
+    end_time = models.DateTimeField(null=True, blank=True)
     in_km = models.FloatField(null=True, blank=True, default=0.0)
     end_image = models.ImageField(upload_to='shift_end/', null=True, blank=True)
+    shift_remark = models.TextField()
+    #------------------------------------------------------------
     created_on = models.DateTimeField(auto_now_add=True)
-    created_date = models.DateField(auto_now_add=True)
-    shift_name = models.CharField(max_length=100, choices=choices_shifts)
-    routes = models.ManyToManyField(Route, blank=False, limit_choices_to={'is_active': True, 'is_working': False})
-    time_estimation = models.IntegerField(null=True, blank=True)
-    km_estimation = models.IntegerField(null=True, blank=True)
-    driver = models.CharField(max_length=500, default='Vendor')
-    day_production = models.IntegerField(null=True, blank=True)
-    total_trip = models.IntegerField(null=True, blank=True, default=1)
-    first_trip_ton = models.IntegerField(null=True, blank=True)
-    second_trip_ton = models.IntegerField(null=True, blank=True)
-    third_trip_ton = models.IntegerField(null=True, blank=True)
-    fourth_trip_ton = models.IntegerField(null=True, blank=True)
-    fifth_trip_ton = models.IntegerField(null=True, blank=True)
-    sixth_trip_ton = models.IntegerField(null=True, blank=True)
-    trip_ton = models.IntegerField(default=0, null=True, blank=True)
+    
+
+    # shift_time_efficiency = models.FloatField(null=True, blank=True) #total routes time estimation/ shift duration
+    # shift_km_efficiency = models.FloatField(null=True, blank=True) #total km estimation of the routes covered/ (in-out km)
+    # shift_load_efficiency = models.FloatField(null=True, blank=True) # avg of total trip efficiency of that shift
+
 
     def __str__(self) -> str:
-        return f"[{self.vehicle}] {self.driver}"
+        return f"[{self.vehicle}] {self.shift_name} {self.driver}"
 
     @property
-    def conflict(self):
-        if self.estimation and self.day_production:
-            return (abs(self.estimation - self.day_production) / self.estimation) * 100
+    def shift_duration(self):
+        if self.start_time and self.end_time:
+            return self.end_time-self.start_time
         else:
-            return
+            return None
+    
+    @property
+    def shift_km(self):
+        if self.out_km and self.in_km:
+            return self.out_km-self.in_km
+        else:
+            return None
+    
+    @property
+    def shif_km_conflicts(self):
+        if self.shif_km and self.routes:
+            total_km_estimation = 0
+            for route in self.routes.all():
+                total_km_estimation+=route.km_estimation
+            return total_km_estimation-self.shif_km
+        else:
+            return None
+    
+    @property
+    def shift_total_load(self):
+        trips = self.shift_trips_set.all()
+        total_load = 0
+        for trip in trips:
+            total_load+=trip.trip_load
+        return total_load
+
 
     @property
-    def total_ton(self):
-        total_ton = self.first_trip_ton + self.second_trip_ton + self.third_trip_ton + self.fourth_trip_ton + \
-                    self.fifth_trip_ton + self.sixth_trip_ton
-        return total_ton
-
+    def shift_load_efficiency(self):
+        trips = self.shift_trips_set.all()
+        total_load_estimation = self.vehicle.load_estimation*len(trips)
+        return total_load/total_load_estimation
+                
     class Meta:
-        unique_together = ['shift_name', 'vehicle', 'created_date']
+        unique_together = ['shift_name', 'vehicle', 'shift_date']
 
 
 class TripHistory(models.Model):
@@ -242,6 +262,7 @@ class TripHistory(models.Model):
         ('III', 'III'),
         ('Others', 'Others')
     ]
+    shift = models.ForeignKey(Shift, related_name='shift_trips_set', on_delete=models.CASCADE)
     vehicle = models.ForeignKey(Vehicle, related_name='vehicle_trips_set', on_delete=models.PROTECT)
     trip_date = models.DateField()
     shift = models.CharField(max_length=20, choices=choices_shifts)
@@ -253,7 +274,7 @@ class TripHistory(models.Model):
     trip_end_time = models.DateTimeField(null=True, blank=True)
 
 
-# =================================== Hasan 20240217 ==============================================
+
 class TransferRegister(models.Model):
     vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT)
     transfer_date = models.DateField()

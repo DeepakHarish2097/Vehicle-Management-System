@@ -95,20 +95,17 @@ class ProductivityReportForm(forms.Form):
 class ShiftForm(forms.ModelForm):
     class Meta:
         model = Shift
-        fields = ['shift_name', 'vehicle', 'start', 'out_km', 'routes', 'driver', 'start_image']
-        widgets = {
-            'start': DateTimeInput()
-        }
-
+        fields = ['shift_name', 'vehicle',  'out_km', 'routes', 'driver', 'start_image']
+        
 
 class ShiftEndForm(forms.ModelForm):
     class Meta:
         model = Shift
-        fields = ['trip_ton', 'in_km', 'end_image']
+        fields = ['shift_remark', 'in_km', 'end_image']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['trip_ton'].required = True
+        self.fields['shift_remark'].required = False
         self.fields['in_km'].required = True
         self.fields['end_image'].required = True
 

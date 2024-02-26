@@ -62,8 +62,8 @@ urlpatterns = [
     path('shift-list/', views.shift_list, name="shift_list"),
     path('add-shift/', views.add_shift, name='add_shift'),
     path('edit-shift/<int:id>/', views.edit_shift, name='edit_shift'),
-    path('close-trip/<int:id>/', views.close_trip, name='close_trip'),
-    path('end-shift/<int:id>/', views.end_shift, name='end_shift'),
+    # path('close-trip/<int:id>/', views.close_trip, name='close_trip'),
+    # path('end-shift/<int:id>/', views.end_shift, name='end_shift'),
 
     # Transfer Registry Urls
     path('transfer-register-list/', views.transfer_register_view, name='transfer_register_view'),

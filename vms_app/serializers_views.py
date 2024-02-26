@@ -92,3 +92,6 @@ class IncidentLog_lcv(generics.ListCreateAPIView):
 class IncidentLog_rud(generics.RetrieveUpdateDestroyAPIView):
     queryset = IncidentLog.objects.all()
     serializer_class = IncidentLogSerializer
+
+
+
