@@ -5,7 +5,7 @@
 
 <div class="row">
     <div class="col-auto">
-        <a href="{% url "add_shift" %}" class="btn btn-primary">
+        <a href="{% url "start_shift" %}" class="btn btn-primary">
             <span class="tf-icons bx bx-list-plus"></span> Start Shift
         </a>
     </div>
@@ -45,9 +45,9 @@
             <div class="card mb-4">
                 <div class="card-body">
                     <h5 class="card-title">{{shift.vehicle}}</h5>
-                    <div class="card-subtitle mb-1">Estimation: <b>{{shift.estimation }}</b></div>
-                    <div class="card-subtitle mb-1">Production: <b>{{shift.day_production }}</b></div>
-                    <div class="card-subtitle mb-3">Current Trip: <b>{{shift.total_trip }}</b></div>
+                    <div class="card-subtitle mb-1">Estimation: <b>{{shift.time_estimation }}</b></div>
+                    
+                    
                     <h5 class="mb-1">Routes</h5>
                     <ul>
                         {% for route in shift.routes.all %}
@@ -70,39 +70,7 @@
                 </div>
             </div>
         </div>
-        {% if shift.total_trip < 6 %}
-        <div class="modal fade" id="close-trip-{{shift.id}}" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel1">Close Trip</h5>
-                        <button
-                        type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal"
-                        aria-label="Close"
-                        ></button>
-                    </div>
-                    <form action="{% url "close_trip" shift.id %}" method="post">
-                        <div class="modal-body">
-                            {% csrf_token %}
-                            <label for="tripTon">Trip Ton</label>
-                            <input type="number" class="form-control" name="trip_ton" id="tripTon" required="">
-                            <p class="mt-3">Are you sure you want to Close Trip {{shift.total_trip}} for: <b>{{shift}}</b>?</p>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                                Close
-                            </button>
-                            <button class="btn btn-dark">
-                                <i class="bx bxs-stopwatch"></i> Close Trip
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-        {% endif %}
+       
     {% endfor %}
 </div>
 {% else %}

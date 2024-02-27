@@ -60,10 +60,17 @@ urlpatterns = [
 
     # Shift Views
     path('shift-list/', views.shift_list, name="shift_list"),
+
+    # Complete only these below three functions
     path('start-shift/', views.start_shift, name='start_shift'),
+    path('rotate-trip/<int:id>', views.rotate_trip, name='rotate_trip'),
+    path('end-shift/<int:id>/', views.end_shift, name='end_shift'),
+    #------------------------------------------------------
+
+
     path('edit-shift/<int:id>/', views.edit_shift, name='edit_shift'),
     # path('close-trip/<int:id>/', views.close_trip, name='close_trip'),
-    # path('end-shift/<int:id>/', views.end_shift, name='end_shift'),
+    # 
 
     # Transfer Registry Urls
     path('transfer-register-list/', views.transfer_register_view, name='transfer_register_view'),
@@ -74,6 +81,10 @@ urlpatterns = [
     path('accident-log-list/', views.accident_log_view, name='accident_log_view'),
     path('add-accident-log/', views.create_accident_log, name='create_accident_log'),
     path('edit-accident-log/<int:id>/', views.edit_accident_log, name='edit_accident_log'),
+
+
+    # dummy trials
+    path('testingnew/', views.testing_new, name='testing_new'),
 
     # testing serializers urls
     path('test/employee/', Employee_lcv.as_view(), name='Employee_lcv'),

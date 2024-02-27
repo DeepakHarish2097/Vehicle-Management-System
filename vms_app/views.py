@@ -432,7 +432,7 @@ def start_shift(request):
             # so that we can close the trip while ending shift.
             # trip_count will save by overwritten save method in models.py
             shift.routes.set(clean_data['routes'])
-            return redirect('shift_list')
+            return redirect('testing_new')
 
     context = {
         "form": form,
@@ -501,7 +501,7 @@ def rotate_trip(request, id: int): # We gave to use the trip_object id now
         if form.is_valid():
             trip_obj = form.save(commit=False)
             trip_obj.is_current=False
-            trip_obj.trip_end_time = datetime.datetime.now()
+            trip_obj.trip_end_time = timezone.now()
             trip_obj.save()
             # trip_efficiency will be save by overwritten save method in models.py
             
@@ -512,8 +512,14 @@ def rotate_trip(request, id: int): # We gave to use the trip_object id now
             next_trip.save()
         else:
             return HttpResponse('Form invalid')
+    context = {
+        "form": form,
+        "menu": "menu-shift",
+        "form_title": "Rotate Trip",
+    }
+    return render(request, 'vms_app/forms.html', context)
 
-    return redirect('shift_list')
+    return redirect('testing_new')
 
 
 @login_required(login_url='login')
@@ -527,31 +533,38 @@ def end_shift(request, id: int): # this id belongs to trip_object here now
     
     trip = TripHistory.objects.get(pk=id)
     shift = trip.shift
-    form = ShiftEndForm(instance=shift)
+    
 
     if request.method == "POST":
-        pass
+        form = ShiftEndForm(data=request.POST, files=request.FILES)
+        if form.is_valid():
+            clean_data = form.cleaned_data
+            shift.shift_remark=clean_data['shift_remark']
+            shift.in_km=clean_data['in_km']
+            shift.end_image=clean_data['end_image']
+            shift.end_time = timezone.now()
+            shift.save(commit=False)
 
-
-        
-
-        # shift.end = timezone.now()
-        # shift.day_production = round((timezone.now() - shift.start).total_seconds() / 60)
-        # shift.save()
-        # vehicle = shift.vehicle
-        # vehicle.is_working = False
-        # vehicle.save()
-        # for route in shift.routes.all():
-        #     route.is_working = False
-        #     route.save()
-        # return redirect('shift_list')
-
+            # closing Trip
+            trip.trip_load=clean_data['trip_load']
+            trip.trip_remark = clean_data['trip_remark']
+            trip.trip_end_time=timezone.now()
+            trip.is_current=False
+            last_trip = trip.save()
+            shift.save()
+            
+            return redirect('testing_new')
+        else:
+            return HttpResponse('Form in valid from end_shift')
+    
     context = {
-        "form": form,
-        "menu": "menu-shift",
-        "form_title": "End Shift",
+    "form": form,
+    "menu": "menu-shift",
+    "form_title": "End Shift",
     }
     return render(request, 'vms_app/forms.html', context)
+
+    
 
 
 # /////////////////// Productivity Views \\\\\\\\\\\\\\\\\\\
@@ -914,3 +927,8 @@ def edit_accident_log(request, id: int):
         "form_title": "Edit Accident Log",
     }
     return render(request, 'vms_app/forms.html', context)
+
+
+
+def testing_new(request):
+    return render(request, 'test.html', {})
