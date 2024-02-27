@@ -124,9 +124,6 @@ class ShiftEndForm(forms.Form):
     end_image = forms.ImageField()
     
 
-    
-
-
 class ShiftReportForm(forms.Form):
     start = forms.DateField()
     end = forms.DateField()
