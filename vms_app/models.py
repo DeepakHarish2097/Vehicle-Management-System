@@ -2,6 +2,7 @@ import uuid
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.utils import timezone
+from django.db import transaction
 
 
 class EmployeeManager(BaseUserManager):
@@ -125,7 +126,7 @@ class Vehicle(models.Model):
     puc = models.DateField(null=True, blank=True)  # pollution under control certificate expiry date
     
     def __str__(self) -> str:
-        return self.vehicle_number
+        return self.vehicle_number+str(self.supervisor)
 
 
 class Productivity(models.Model):
@@ -187,7 +188,7 @@ class Shift(models.Model):
         ('Others', 'Others')
     ]
     vehicle = models.ForeignKey(Vehicle, related_name="vehicle_shift_set", on_delete=models.PROTECT,
-                                limit_choices_to={'is_active': True, 'is_working': False})
+                                limit_choices_to={'is_active': True, 'is_working': False}, null=False)
     shift_name = models.CharField(max_length=100, choices=choices_shifts)
     start_time = models.DateTimeField(auto_now_add=True)
     routes = models.ManyToManyField(Route, blank=False, limit_choices_to={'is_active': True, 'is_working': False})
@@ -206,16 +207,19 @@ class Shift(models.Model):
     km_estimation = models.IntegerField(default=1, editable=False)
 
     def save(self, *args, **kwargs):
-        if self.routes:
-            total_time_estimation = 0
-            total_km_estimation=0
-            for route in self.routes.all():
-                total_time_estimation+=route.time_estimation
-                total_km_estimation+=route.km_estimation
-            self.time_estimation = total_time_estimation
-            self.km_estimation = total_km_estimation
-       
-        super().save(*args, **kwargs)
+         with transaction.atomic():
+            super().save(*args, **kwargs)  #
+            if self.routes.exists():  # Check if routes exist
+                total_time_estimation = 0
+                total_km_estimation = 0
+                for route in self.routes.all():
+                    total_time_estimation += route.time_estimation
+                    total_km_estimation += route.km_estimation
+                self.time_estimation = total_time_estimation
+                self.km_estimation = total_km_estimation
+
+                # Update the instance with new estimations
+                self.save(update_fields=['time_estimation', 'km_estimation'])
 
     # end def
     # shift_time_efficiency = models.FloatField(null=True, blank=True) #total routes time estimation/ shift duration
@@ -224,7 +228,7 @@ class Shift(models.Model):
 
 
     def __str__(self) -> str:
-        return f"[{self.vehicle}] {self.shift_name} {self.driver}"
+        return f"{self.vehicle} {self.shift_name} {self.driver}"
 
     @property
     def shift_duration(self):
@@ -287,22 +291,22 @@ class TripHistory(models.Model):
         ('III', 'III'),
         ('Others', 'Others')
     ]
-    shift = models.ForeignKey(Shift, related_name='shift_trips_set', on_delete=models.CASCADE)
-    vehicle = models.ForeignKey(Vehicle, related_name='vehicle_trips_set', on_delete=models.PROTECT)
+    shift = models.ForeignKey(Shift, related_name='shift_trips_set', on_delete=models.CASCADE, null=False)
+    vehicle = models.ForeignKey(Vehicle, related_name='vehicle_trips_set', on_delete=models.PROTECT, null=False)
     is_current = models.BooleanField(default=True, editable=False)
     trip_date = models.DateField(auto_now_add=True)
     trip_start_time = models.DateTimeField(auto_now_add=True)
     updted_on = models.DateTimeField(auto_now=True)
 
     trip_end_time = models.DateTimeField(null=True, blank=True)
-    trip_load = models.IntegerField()  # in kg
+    trip_load = models.IntegerField(null=True, blank=True)  # in kg
     trip_remark = models.TextField(null=True, blank=True)
     # Method Fields set by overwriting save method
     trip_count = models.IntegerField(default=0) # method field have to be increased +1 in backend
     trip_efficiency = models.FloatField(default=0)
 
     def save(self, *args, **kwargs):
-        if not self.trip_count:
+        if self.trip_count==0:
             existing_trips = TripHistory.objects.filter(shift=self.shift, vehicle=self.vehicle, trip_date=self.trip_date)
             if existing_trips:
                 self.trip_count = existing_trips.count() + 1
@@ -311,6 +315,9 @@ class TripHistory(models.Model):
         if self.trip_load:
             self.trip_efficiency=self.trip_load/self.vehicle.load_estimation
         super().save(*args, **kwargs)
+       
+       
+        
 
 
 

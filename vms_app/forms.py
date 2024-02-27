@@ -109,17 +109,17 @@ class RotateTripForm(forms.ModelForm):
         model = TripHistory
         fields = ['trip_load', 'trip_remark']
         
-
-class ShiftEndForm(forms.Form):
+   
     '''Actually it is Trip closing form
     We are closing the last trip and  closing the corresponding shift parallelly.
     Flaw is that the trip will be closed in Dump Yard. Shift will be closed in Vehicle Set. 
     There is km and time difference between 2 points
     This flaw --- we can fix later  '''
-    trip_load = forms.IntegerField()  # in kg
-    trip_remark = forms.Textarea()
 
-    shift_remark = forms.Textarea()
+class ShiftEndForm2(forms.Form):
+    trip_load = forms.IntegerField() 
+    trip_remark = forms.CharField(max_length=250)
+    shift_remark = forms.CharField(max_length=250)
     in_km = forms.FloatField()
     end_image = forms.ImageField()
     

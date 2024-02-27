@@ -4,10 +4,6 @@ from django.contrib.auth.decorators import login_required
 from .models import Employee, Vehicle, Route, Productivity, Zone, Ward, \
     TransferRegister, AccidentLog, Shift
 from .models import *
-from .forms import VehicleForm, RouteForm, EmployeeRegistrationForm, \
-    ProductivityForm, ProductivityReportForm, EmployeeEditForm, ZoneForm, \
-    WardForm, TransferRegisterForm, AccidentLogForm, ProductivityEndForm, \
-    ShiftForm, ShiftEndForm, ShiftReportForm
 from .forms import *
 from .decorators import superuser_required, active_required
 from django.contrib.auth import logout
@@ -408,7 +404,7 @@ def start_shift(request):
         form = ShiftForm(request.POST, request.FILES)
         if form.is_valid():
             clean_data = form.cleaned_data
-            shift = form.save(commit=False)
+            shift = form.save()
             # set by overwrite save in models.py so that it will update while updating the shift too
             # total_time_estimation = 0
             # total_km_estimation = 0
@@ -419,19 +415,26 @@ def start_shift(request):
             #     route.save()
             # shift.time_estimation = total_time_estimation
             # shift.km_estimation = total_km_estimation
-            current_shift = shift.save()
+           
+            print('current_shift', shift)
+          
             vehicle = shift.vehicle
+            print(vehicle)
             vehicle.is_working = True
             vehicle.save()
+            print('vehicle', vehicle)
             # TripHistory operations
             trip = TripHistory()
-            trip.shift = current_shift
+            trip.shift = shift
             trip.vehicle=vehicle
             trip.save()
+            print('trip', trip)
+            
+            
             # trip.is_current will be set True by default. We have off it while rotating the shift
             # so that we can close the trip while ending shift.
             # trip_count will save by overwritten save method in models.py
-            shift.routes.set(clean_data['routes'])
+            # shift.routes.set(clean_data['routes'])
             return redirect('testing_new')
 
     context = {
@@ -532,13 +535,16 @@ def end_shift(request, id: int): # this id belongs to trip_object here now
     This flaw --- we can fix later '''
     
     trip = TripHistory.objects.get(pk=id)
+    print(trip)
     shift = trip.shift
+    print(shift)
     
-
+    form = ShiftEndForm2()
     if request.method == "POST":
-        form = ShiftEndForm(data=request.POST, files=request.FILES)
+        form = ShiftEndForm2(request.POST, request.FILES)
         if form.is_valid():
             clean_data = form.cleaned_data
+            print(clean_data)
             shift.shift_remark=clean_data['shift_remark']
             shift.in_km=clean_data['in_km']
             shift.end_image=clean_data['end_image']
@@ -562,7 +568,7 @@ def end_shift(request, id: int): # this id belongs to trip_object here now
     "menu": "menu-shift",
     "form_title": "End Shift",
     }
-    return render(request, 'vms_app/forms.html', context)
+    return render(request, 'vms_app/forms2.html', context)
 
     
 
@@ -931,4 +937,4 @@ def edit_accident_log(request, id: int):
 
 
 def testing_new(request):
-    return render(request, 'test.html', {})
+    return render(request, 'vms_app/test.html', {})
