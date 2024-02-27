@@ -192,18 +192,20 @@ class Shift(models.Model):
     start_time = models.DateTimeField(auto_now_add=True)
     routes = models.ManyToManyField(Route, blank=False, limit_choices_to={'is_active': True, 'is_working': False})
     out_km = models.FloatField(null=True, blank=True, default=0.0)
-    start_image = models.ImageField(upload_to='shift_start/')
+    start_image = models.ImageField(null=True, blank=True, upload_to='shift_start/')
     driver = models.CharField(max_length=500, default='Vendor')
     shift_date = models.DateField(auto_now_add=True)
     #------------------------------------------------------------
     end_time = models.DateTimeField(null=True, blank=True)
     in_km = models.FloatField(null=True, blank=True, default=0.0)
-    end_image = models.ImageField(upload_to='shift_end/', null=True, blank=True)
-    shift_remark = models.TextField()
+    end_image = models.ImageField(null=True, blank=True, upload_to='shift_end/')
+    shift_remark = models.TextField(null=True, blank=True)
     #------------------------------------------------------------
     created_on = models.DateTimeField(auto_now_add=True)
-    
+    time_estimation = models.IntegerField(default=0, editable=False)
+    km_estimation = models.IntegerField(default=1, editable=False)
 
+    # end def
     # shift_time_efficiency = models.FloatField(null=True, blank=True) #total routes time estimation/ shift duration
     # shift_km_efficiency = models.FloatField(null=True, blank=True) #total km estimation of the routes covered/ (in-out km)
     # shift_load_efficiency = models.FloatField(null=True, blank=True) # avg of total trip efficiency of that shift
@@ -247,6 +249,7 @@ class Shift(models.Model):
 
     @property
     def shift_load_efficiency(self):
+        total_load = self.shift_total_load
         trips = self.shift_trips_set.all()
         if trips:
             total_load_estimation = self.vehicle.load_estimation*len(trips)
@@ -267,21 +270,25 @@ class TripHistory(models.Model):
     ]
     shift = models.ForeignKey(Shift, related_name='shift_trips_set', on_delete=models.CASCADE)
     vehicle = models.ForeignKey(Vehicle, related_name='vehicle_trips_set', on_delete=models.PROTECT)
-    trip_date = models.DateField()
+    is_current = models.BooleanField(default=True, editable=False)
+    trip_date = models.DateField(auto_now_add=True)
     trip_start_time = models.DateTimeField(auto_now_add=True)
     updted_on = models.DateTimeField(auto_now=True)
     trip_end_time = models.DateTimeField(null=True, blank=True)
     trip_load = models.IntegerField()  # in kg
-    # Method Fields
+    trip_remark = models.TextField(null=True, blank=True)
+    # Method Fields set by overwriting save method
     trip_count = models.IntegerField(default=0) # method field have to be increased +1 in backend
     trip_efficiency = models.FloatField(default=0) 
     def save(self, *args, **kwargs):
         if not self.trip_count:
             existing_trips = TripHistory.objects.filter(shift=self.shift, vehicle=self.vehicle, trip_date=self.trip_date)
-            if existing_trip:
+            if existing_trips:
                 self.trip_count = existing_trips.count() + 1
             else:
                 self.trip_count = 1
+        if self.trip_load:
+            self.trip_efficiency=self.trip_load/self.vehicle.load_estimation
         super().save(*args, **kwargs)
 
 

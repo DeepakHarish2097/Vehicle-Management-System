@@ -1,6 +1,7 @@
 from django import forms
 from .models import Employee, Vehicle, Route, Productivity, Zone, Ward, \
     TransferRegister, AccidentLog, Shift
+from .models import *
 from django.contrib.auth.forms import UserCreationForm
 from django.forms.widgets import DateInput, TimeInput
 
@@ -96,6 +97,17 @@ class ShiftForm(forms.ModelForm):
     class Meta:
         model = Shift
         fields = ['shift_name', 'vehicle',  'out_km', 'routes', 'driver', 'start_image']
+
+class ShiftStartForm(forms.ModelForm):
+    class Meta:
+        model = Shift
+        fields = ['shift_name', 'vehicle', 'routes', 'out_km', 'start_image', 'driver']
+
+
+class RotateTripForm(forms.ModelForm):
+    class Meta:
+        model = TripHistory
+        fields = ['trip_load', 'trip_remark']
         
 
 class ShiftEndForm(forms.ModelForm):

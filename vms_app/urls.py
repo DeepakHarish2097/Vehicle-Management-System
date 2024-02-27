@@ -60,7 +60,7 @@ urlpatterns = [
 
     # Shift Views
     path('shift-list/', views.shift_list, name="shift_list"),
-    path('add-shift/', views.add_shift, name='add_shift'),
+    path('start-shift/', views.start_shift, name='start_shift'),
     path('edit-shift/<int:id>/', views.edit_shift, name='edit_shift'),
     # path('close-trip/<int:id>/', views.close_trip, name='close_trip'),
     # path('end-shift/<int:id>/', views.end_shift, name='end_shift'),

@@ -3,16 +3,19 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import Employee, Vehicle, Route, Productivity, Zone, Ward, \
     TransferRegister, AccidentLog, Shift
+from .models import *
 from .forms import VehicleForm, RouteForm, EmployeeRegistrationForm, \
     ProductivityForm, ProductivityReportForm, EmployeeEditForm, ZoneForm, \
     WardForm, TransferRegisterForm, AccidentLogForm, ProductivityEndForm, \
     ShiftForm, ShiftEndForm, ShiftReportForm
+from .forms import *
 from .decorators import superuser_required, active_required
 from django.contrib.auth import logout
 from django.utils import timezone
 from openpyxl import Workbook
 from django.http import HttpResponse
 from django.contrib.auth.forms import PasswordChangeForm
+import datetime
 
 
 @login_required(login_url='login')
@@ -388,7 +391,7 @@ def shift_list(request):
 
 @login_required(login_url='login')
 @active_required
-def add_shift(request):
+def start_shift(request):
     form = ShiftForm()
 
     if not request.user.is_superuser:
@@ -397,6 +400,9 @@ def add_shift(request):
 
         form.fields['vehicle'].queryset = vehicle
         form.fields['routes'].queryset = routes
+    else:
+        form.fields['vehicle'].queryset = Vehicle.objects.filter(is_working=False)
+        form.fields['routes'].queryset = Route.objects.filter(is_working=False, is_active=True)
 
     if request.method == "POST":
         form = ShiftForm(request.POST, request.FILES)
@@ -407,15 +413,22 @@ def add_shift(request):
             total_km_estimation = 0
             for route in clean_data['routes']:
                 total_time_estimation += route.time_estimation
-                total_km_estimation += route.time_estimation
+                total_km_estimation += route.km_estimation
                 route.is_working = True
                 route.save()
             shift.time_estimation = total_time_estimation
             shift.km_estimation = total_km_estimation
-            shift.save()
+            current_shift = shift.save()
             vehicle = shift.vehicle
             vehicle.is_working = True
             vehicle.save()
+            # TripHistory operations
+            trip = TripHistory()
+            trip.shift = current_shift
+            trip.vehicle=vehicle
+            trip.save()
+            # trip.is_current will be set True by default. We have off it while rotating the shift
+            # trip_count will save by overwritten save method in models.py
             shift.routes.set(clean_data['routes'])
             return redirect('shift_list')
 
@@ -475,29 +488,38 @@ def edit_shift(request, id: int):
     return render(request, 'vms_app/forms.html', context)
 
 
-# @login_required(login_url='login')
-# @active_required
-# def close_trip(request, id: int):
-#     shift = Shift.objects.get(pk=id)
+@login_required(login_url='login')
+@active_required
+def rotate_trip(request, id: int): # We gave to use the trip object id now
+    trip = TripHistory.objects.get(pk=id)
+    shift = trip.shift
+    form = RotateTripForm()
+    if request.method == "POST":
+        form = RotateTripForm(request.POST, instance=trip)
+        if form.is_valid():
+            trip_obj = form.save(commit=False)
+            trip_obj.is_current=False
+            trip_obj.trip_end_time = datetime.datetime.now()
+            trip_obj.save()
+            # trip_efficiency will be save by overwritten save method in models.py
+            
+            # Starting next trip
+            next_trip = TripHistory()
+            next_trip.shift = shift
+            next_trip.vehicle=shift.vehicle
+            next_trip.save()
+        else:
+            return HttpResponse('Form invalid')
 
-#     if request.method == "POST":
-#         trip_ton = int(request.POST.get("trip_ton", 0))
-#         if shift.total_trip == 1:
-#             shift.first_trip_ton = trip_ton
-#         elif shift.total_trip == 2:
-#             shift.second_trip_ton = trip_ton
-#         elif shift.total_trip == 3:
-#             shift.third_trip_ton = trip_ton
-#         elif shift.total_trip == 4:
-#             shift.fourth_trip_ton = trip_ton
-#         elif shift.total_trip == 5:
-#             shift.fifth_trip_ton = trip_ton
-#         else:
-#             shift.sixth_trip_ton = trip_ton
 
-#     shift.total_trip += 1 if shift.total_trip < 6 else 0
-#     shift.save()
-#     return redirect('shift_list')
+
+  
+                
+            # end def
+            
+
+        
+    return redirect('shift_list')
 
 
 # @login_required(login_url='login')
