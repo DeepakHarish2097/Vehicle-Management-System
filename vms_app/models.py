@@ -197,7 +197,7 @@ class Shift(models.Model):
     driver = models.CharField(max_length=500, default='Vendor')
     shift_date = models.DateField(auto_now_add=True)
     #------------------------------------------------------------
-    end_time = models.DateTimeField(null=True, blank=True)
+    end_time = models.DateTimeField(null=True, blank=True) # used to check shift completed or not in view
     in_km = models.FloatField(null=True, blank=True, default=0.0)
     end_image = models.ImageField(null=True, blank=True, upload_to='shift_end/')
     shift_remark = models.TextField(null=True, blank=True)
@@ -219,7 +219,7 @@ class Shift(models.Model):
                 self.km_estimation = total_km_estimation
 
                 # Update the instance with new estimations
-                self.save(update_fields=['time_estimation', 'km_estimation'])
+                super().save(*args, **kwargs)
 
     # end def
     # shift_time_efficiency = models.FloatField(null=True, blank=True) #total routes time estimation/ shift duration
@@ -240,7 +240,7 @@ class Shift(models.Model):
     @property
     def shift_km(self):
         if self.out_km and self.in_km:
-            return self.out_km-self.in_km
+            return self.in_km-self.out_km
         else:
             return None
 
@@ -260,25 +260,50 @@ class Shift(models.Model):
         trips = self.shift_trips_set.all()
         if trips:
             total_load_estimation = self.vehicle.load_estimation*len(trips)
-            return total_load/total_load_estimation
+            return 100 * total_load/total_load_estimation
         else:
             return None
         
     @property
-    def shif_km_conflicts(self):
-        if self.shif_km and self.routes:
+    def shift_km_conflicts(self):
+        if self.shift_km and self.routes:
             total_km_estimation = 0
             for route in self.routes.all():
                 total_km_estimation+=route.km_estimation
-            return self.shif_km/total_km_estimation
+            return self.shift_km/total_km_estimation
         else:
             return None
+        
     @property
     def shift_time_efficiency(self):
-        if self.duration and self.time_estimation:
-            return self.time_estimation/self.duration
+        if self.shift_duration and self.time_estimation:
+            return 100 * self.time_estimation/(self.shift_duration.total_seconds()//60)
         else: 
             return None
+        
+    @property
+    def shit_total_time_estimation(self):
+        if self.routes.all():
+            time_estimation = 0
+            for route in self.routes.all():
+                time_estimation += route.time_estimation
+            return time_estimation
+        else:
+            return 0
+        
+    @property
+    def shift_km_estimation(self):
+        if self.routes.all():
+            km_estimation = 0
+            for route in self.routes.all():
+                km_estimation += route.km_estimation
+            return km_estimation
+        else:
+            return 0
+        
+    @property
+    def shit_total_trip_count(self):
+        return len(self.shift_trips_set.all())
                 
     class Meta:
         unique_together = ['shift_name', 'vehicle', 'shift_date']
@@ -306,15 +331,15 @@ class TripHistory(models.Model):
     trip_efficiency = models.FloatField(default=0)
 
     def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
         if self.trip_count==0:
             existing_trips = TripHistory.objects.filter(shift=self.shift, vehicle=self.vehicle, trip_date=self.trip_date)
-            if existing_trips:
-                self.trip_count = existing_trips.count() + 1
-            else:
-                self.trip_count = 1
+            print(existing_trips, len(existing_trips))
+            self.trip_count = len(existing_trips) + 1
         if self.trip_load:
             self.trip_efficiency=self.trip_load/self.vehicle.load_estimation
         super().save(*args, **kwargs)
+        # self.save(update_fields=['trip_load', 'trip_count'])
        
        
         

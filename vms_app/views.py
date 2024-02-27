@@ -376,7 +376,7 @@ def edit_user(request):
 @login_required(login_url='login')
 @active_required
 def shift_list(request):
-    shift = Shift.objects.filter(start__date=timezone.now().date())
+    shift = Shift.objects.filter(created_on__date=timezone.now().date())
     context = {
         "menu": "menu-shift",
         "shift_list": shift,
@@ -405,37 +405,20 @@ def start_shift(request):
         if form.is_valid():
             clean_data = form.cleaned_data
             shift = form.save()
-            # set by overwrite save in models.py so that it will update while updating the shift too
-            # total_time_estimation = 0
-            # total_km_estimation = 0
-            # for route in clean_data['routes']:
-            #     total_time_estimation += route.time_estimation
-            #     total_km_estimation += route.km_estimation
-            #     route.is_working = True
-            #     route.save()
-            # shift.time_estimation = total_time_estimation
-            # shift.km_estimation = total_km_estimation
-           
-            print('current_shift', shift)
-          
             vehicle = shift.vehicle
-            print(vehicle)
             vehicle.is_working = True
             vehicle.save()
-            print('vehicle', vehicle)
             # TripHistory operations
             trip = TripHistory()
             trip.shift = shift
             trip.vehicle=vehicle
             trip.save()
-            print('trip', trip)
-            
             
             # trip.is_current will be set True by default. We have off it while rotating the shift
             # so that we can close the trip while ending shift.
             # trip_count will save by overwritten save method in models.py
             # shift.routes.set(clean_data['routes'])
-            return redirect('testing_new')
+            return redirect('shift_list')
 
     context = {
         "form": form,
@@ -496,8 +479,9 @@ def edit_shift(request, id: int):
 @login_required(login_url='login')
 @active_required
 def rotate_trip(request, id: int): # We gave to use the trip_object id now
-    trip = TripHistory.objects.get(pk=id)
-    shift = trip.shift
+    shift = Shift.objects.get(pk=id)
+    trip = shift.shift_trips_set.all().get(is_current=True)
+    # trip = TripHistory.objects.get(pk=id)
     form = RotateTripForm()
     if request.method == "POST":
         form = RotateTripForm(request.POST, instance=trip)
@@ -513,8 +497,7 @@ def rotate_trip(request, id: int): # We gave to use the trip_object id now
             next_trip.shift = shift
             next_trip.vehicle=shift.vehicle
             next_trip.save()
-        else:
-            return HttpResponse('Form invalid')
+            return redirect('shift_list')
     context = {
         "form": form,
         "menu": "menu-shift",
@@ -534,14 +517,18 @@ def end_shift(request, id: int): # this id belongs to trip_object here now
     There is km and time difference between 2 points
     This flaw --- we can fix later '''
     
-    trip = TripHistory.objects.get(pk=id)
+    shift = Shift.objects.get(pk=id)
+    trip = shift.shift_trips_set.all().get(is_current=True)
     print(trip)
-    shift = trip.shift
-    print(shift)
+    # trip = TripHistory.objects.get(pk=id)
     
-    form = ShiftEndForm2()
+    # print(trip)
+    # shift = trip.shift
+    # print(shift)
+    
+    form = ShiftEndForm()
     if request.method == "POST":
-        form = ShiftEndForm2(request.POST, request.FILES)
+        form = ShiftEndForm(request.POST, request.FILES)
         if form.is_valid():
             clean_data = form.cleaned_data
             print(clean_data)
@@ -549,7 +536,10 @@ def end_shift(request, id: int): # this id belongs to trip_object here now
             shift.in_km=clean_data['in_km']
             shift.end_image=clean_data['end_image']
             shift.end_time = timezone.now()
-            shift.save(commit=False)
+            vehicle = shift.vehicle
+            vehicle.is_working = False
+            vehicle.save()
+            shift.save()
 
             # closing Trip
             trip.trip_load=clean_data['trip_load']
@@ -557,19 +547,17 @@ def end_shift(request, id: int): # this id belongs to trip_object here now
             trip.trip_end_time=timezone.now()
             trip.is_current=False
             last_trip = trip.save()
-            shift.save()
+            # shift.save()
             
-            return redirect('testing_new')
-        else:
-            return HttpResponse('Form in valid from end_shift')
+            return redirect('shift_list')
+    
     
     context = {
     "form": form,
     "menu": "menu-shift",
     "form_title": "End Shift",
     }
-    return render(request, 'vms_app/forms2.html', context)
-
+    return render(request, 'vms_app/forms.html', context)
     
 
 
@@ -577,268 +565,25 @@ def end_shift(request, id: int): # this id belongs to trip_object here now
 @login_required(login_url='login')
 @active_required
 def productivity_list(request):
-    productivity = Productivity.objects.filter(start__date=timezone.now().date())
-    query = request.GET.get("query", None)
-    type = request.GET.get("type", None)
-
-    if type and query:
-        today_productivity = Productivity.objects.filter(start__date=timezone.now().date())
-        if type == "production":
-            if query == "highest":
-                productivity = today_productivity.order_by('-day_production')
-            elif query == "least":
-                productivity = today_productivity.order_by('day_production')
-            else:
-                productivity = Productivity.objects.all()
-        elif type == "estimation":
-            if query == "highest":
-                productivity = today_productivity.order_by('-estimation')
-            else:
-                productivity = today_productivity.order_by('estimation')
-        else:
-            if query == "unused":
-                all_vehicles = Vehicle.objects.filter(is_active=True)
-                prod_vehicles = Vehicle.objects.filter(vehicle_productivity_set__start__date__gte=timezone.now().date())
-                productivity = [i for i in all_vehicles if i not in prod_vehicles]
-
+    # return HttpResponse("Test")
+    shifts = Shift.objects.all()
+    
     context = {
         "menu": "menu-productivity",
-        "productivity_list": productivity,
-        "type": type,
+        "shifts": shifts,
     }
     return render(request, 'vms_app/productivity_list.html', context)
 
 
 @login_required(login_url='login')
 @active_required
-def add_productivity(request):
-    form = ProductivityForm()
-
-    if not request.user.is_superuser:
-        vehicle = Vehicle.objects.filter(supervisor=request.user, is_working=False)
-        routes = Route.objects.filter(supervisor=request.user)
-
-        form.fields['vehicle'].queryset = vehicle
-        form.fields['routes'].queryset = routes
-
-    else:
-        form.fields['vehicle'].queryset = Vehicle.objects.filter(is_working=False)
-        form.fields['routes'].queryset = Route.objects.all()
-
-    if request.method == "POST":
-        form = ProductivityForm(request.POST, request.FILES)
-        if form.is_valid():
-            clean_data = form.cleaned_data
-            productivity = form.save(commit=False)
-            total_estimation = 0
-            for route in clean_data['routes']:
-                total_estimation += route.estimation
-            productivity.estimation = total_estimation
-            productivity.save()
-            vehicle = productivity.vehicle
-            vehicle.is_working = True
-            vehicle.save()
-            productivity.routes.set(clean_data['routes'])
-            return redirect('productivity_list')
-
+def shift_details(request, id: int):
+    shift = Shift.objects.get(pk=id)
     context = {
-        "form": form,
         "menu": "menu-productivity",
-        "form_title": "Start Shift",
+        "shift": shift,
     }
-    return render(request, 'vms_app/forms.html', context)
-
-
-@login_required(login_url='login')
-@active_required
-def edit_productivity(request, id: int):
-    productivity = Productivity.objects.get(pk=id)
-    vehicle = productivity.vehicle
-    vehicle.is_working = False
-    vehicle.save()
-    form = ProductivityForm(instance=productivity)
-
-    if not request.user.is_superuser:
-        vehicle = Vehicle.objects.filter(supervisor=request.user, is_working=False)
-        routes = Route.objects.filter(supervisor=request.user)
-
-        form.fields['vehicle'].queryset = vehicle
-        form.fields['routes'].queryset = routes
-
-    if request.method == "POST":
-        form = ProductivityForm(request.POST, request.FILES, instance=productivity)
-        if form.is_valid():
-            clean_data = form.cleaned_data
-            productivity = form.save(commit=False)
-            total_estimation = 0
-            for route in clean_data['routes']:
-                total_estimation += route.estimation
-            productivity.estimation = total_estimation
-            productivity.save()
-            vehicle = productivity.vehicle
-            vehicle.is_working = True
-            vehicle.save()
-            productivity.routes.set(clean_data['routes'])
-            return redirect('productivity_list')
-
-    context = {
-        "form": form,
-        "menu": "menu-productivity",
-        "form_title": "Edit Shift",
-    }
-    return render(request, 'vms_app/forms.html', context)
-
-
-@login_required(login_url='login')
-@active_required
-def end_productivity(request, id: int):
-    productivity = Productivity.objects.get(pk=id)
-    form = ProductivityEndForm(instance=productivity)
-
-    if request.method == "POST":
-        trip_ton = int(request.POST.get("trip_ton", 0))
-        form = ProductivityEndForm(request.POST, request.FILES, instance=productivity)
-        if form.is_valid():
-            productivity = form.save(commit=False)
-            if productivity.total_trip == 1:
-                productivity.first_trip_ton = trip_ton
-            elif productivity.total_trip == 2:
-                productivity.second_trip_ton = trip_ton
-            elif productivity.total_trip == 3:
-                productivity.third_trip_ton = trip_ton
-            elif productivity.total_trip == 4:
-                productivity.fourth_trip_ton = trip_ton
-            elif productivity.total_trip == 5:
-                productivity.fifth_trip_ton = trip_ton
-            else:
-                productivity.sixth_trip_ton = trip_ton
-
-            productivity.end = timezone.now()
-            productivity.day_production = round((timezone.now() - productivity.start).total_seconds() / 60)
-            productivity.save()
-            vehicle = productivity.vehicle
-            vehicle.is_working = False
-            vehicle.save()
-            return redirect('productivity_list')
-
-    context = {
-        "form": form,
-        "menu": "menu-productivity",
-        "form_title": "End Shift",
-    }
-    return render(request, 'vms_app/forms.html', context)
-
-
-def productivity_excel_report(filename, productivity):
-    wb = Workbook()
-    ws = wb.active
-    ws.title = filename
-
-    headers = ["Vehicle No.", "Start", "End", "Driver", "Estimation", "Production"]
-    ws.append(headers)
-
-    for i in productivity:
-        ws.append(
-            [i.vehicle.vehicle_number, i.start.strftime('%d/%m/%Y'), i.end.strftime('%d/%m/%Y'), i.driver, i.estimation,
-             i.day_production])
-
-    return wb
-
-
-@login_required(login_url='login')
-@active_required
-def productivity_week_report(request):
-    today = timezone.now()
-    start_date = today - timezone.timedelta(days=today.weekday())
-    end_date = start_date + timezone.timedelta(days=7)
-    filename = today.strftime("Week-%W %B %Y")
-    productivity = Productivity.objects.filter(
-        start__date__gte=start_date,
-        start__date__lte=end_date
-    )
-
-    if request.method == "POST":
-        response = HttpResponse(content_type='application/ms-excel')
-        response['Content-Disposition'] = f'attachment; filename="{filename}.xlsx"'
-
-        excel_report = productivity_excel_report(filename, productivity)
-        excel_report.save(response)
-        return response
-
-    context = {
-        "head": filename,
-        "menu": "menu-productivity",
-        "productivity_list": productivity
-    }
-    return render(request, 'vms_app/productivity_report.html', context)
-
-
-@login_required(login_url='login')
-@active_required
-def productivity_month_report(request):
-    today = timezone.now()
-    current_year = today.year
-    current_month = today.month
-    productivity = Productivity.objects.filter(
-        start__year=current_year,
-        start__month=current_month
-    )
-    filename = today.strftime("%B %Y")
-
-    if request.method == "POST":
-        response = HttpResponse(content_type='application/ms-excel')
-        response['Content-Disposition'] = f'attachment; filename="{filename}.xlsx"'
-
-        excel_report = productivity_excel_report(filename, productivity)
-        excel_report.save(response)
-        return response
-
-    context = {
-        "head": filename,
-        "menu": "menu-productivity",
-        "productivity_list": productivity
-    }
-    return render(request, 'vms_app/productivity_report.html', context)
-
-
-@login_required(login_url='login')
-@active_required
-def productivity_custom_report(request):
-    today = timezone.now()
-    data = {
-        "start": today,
-        "end": today,
-    }
-    download = False
-
-    if request.method == "POST":
-        download = bool(request.POST.get('download', False))
-        form = ProductivityReportForm(request.POST)
-        if form.is_valid():
-            data = form.cleaned_data
-
-    productivity = Productivity.objects.filter(
-        start__date__gte=data['start'],
-        start__date__lte=data['end']
-    )
-
-    if download:
-        filename = f"{data['start'].strftime('%d.%m.%Y')} - {data['end'].strftime('%d.%m.%Y')}"
-        response = HttpResponse(content_type='application/ms-excel')
-        response['Content-Disposition'] = f'attachment; filename="{filename}.xlsx"'
-
-        excel_report = productivity_excel_report(filename, productivity)
-        excel_report.save(response)
-        return response
-
-    context = {
-        "data": data,
-        "head": "Custom Report",
-        "menu": "menu-productivity",
-        "productivity_list": productivity,
-        "custom": True
-    }
-    return render(request, 'vms_app/productivity_report.html', context)
+    return render(request, 'vms_app/shift_view.html', context)
 
 
 # /////////////////// Transfer Register Views \\\\\\\\\\\\\\\\\\\

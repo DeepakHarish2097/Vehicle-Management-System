@@ -51,26 +51,14 @@ urlpatterns = [
 
     # Productivity Urls
     path('productivity-list/', views.productivity_list, name='productivity_list'),
-    path('add-productivity/', views.add_productivity, name='add_productivity'),
-    path('edit-productivity/<int:id>/', views.edit_productivity, name='edit_productivity'),
-
-    path('productivity-week-report/', views.productivity_week_report, name='productivity_week_report'),
-    path('productivity-month-report/', views.productivity_month_report, name='productivity_month_report'),
-    path('productivity-custom-report/', views.productivity_custom_report, name='productivity_custom_report'),
+    path('shift-view/<int:id>/', views.shift_details, name='shift_details'),
 
     # Shift Views
     path('shift-list/', views.shift_list, name="shift_list"),
-
-    # Complete only these below three functions
     path('start-shift/', views.start_shift, name='start_shift'),
     path('rotate-trip/<int:id>', views.rotate_trip, name='rotate_trip'),
     path('end-shift/<int:id>/', views.end_shift, name='end_shift'),
-    #------------------------------------------------------
-
-
     path('edit-shift/<int:id>/', views.edit_shift, name='edit_shift'),
-    # path('close-trip/<int:id>/', views.close_trip, name='close_trip'),
-    # 
 
     # Transfer Registry Urls
     path('transfer-register-list/', views.transfer_register_view, name='transfer_register_view'),
