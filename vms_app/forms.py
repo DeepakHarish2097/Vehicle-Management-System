@@ -111,15 +111,22 @@ class RotateTripForm(forms.ModelForm):
         
 
 class ShiftEndForm(forms.ModelForm):
+    '''Actually it is Trip closing form
+    We are closing the last trip and  closing the corresponding shift parallelly.
+    Flaw is that the trip will be closed in Dump Yard. Shift will be closed in Vehicle Set. 
+    There is km and time difference between 2 points
+    This flaw --- we can fix later  '''
+    trip_load = forms.IntegerField()  # in kg
+    trip_remark = forms.Textarea()
     class Meta:
         model = Shift
-        fields = ['shift_remark', 'in_km', 'end_image']
+        fields = ['shift_remark', 'in_km', 'end_image', 'trip_load', 'trip_remark']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['shift_remark'].required = False
         self.fields['in_km'].required = True
-        self.fields['end_image'].required = True
+        self.fields['end_image'].required = False
 
 
 class ShiftReportForm(forms.Form):

@@ -74,7 +74,7 @@ class Route(models.Model):
     ward = models.ForeignKey(Ward, related_name='ward_routes_set', on_delete=models.PROTECT)
     street = models.CharField(max_length=500)
     km_estimation = models.IntegerField(null=True, blank=True, default=50)
-    time_estimation = models.IntegerField(null=True, blank=True)
+    time_estimation = models.IntegerField(default=100, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_working = models.BooleanField(default=False)
     supervisor = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True,
@@ -202,8 +202,20 @@ class Shift(models.Model):
     shift_remark = models.TextField(null=True, blank=True)
     #------------------------------------------------------------
     created_on = models.DateTimeField(auto_now_add=True)
-    time_estimation = models.IntegerField(default=0, editable=False)
+    time_estimation = models.FloatField(default=0, editable=False)
     km_estimation = models.IntegerField(default=1, editable=False)
+
+    def save(self, *args, **kwargs):
+        if self.routes:
+            total_time_estimation = 0
+            total_km_estimation=0
+            for route in self.routes.all():
+                total_time_estimation+=route.time_estimation
+                total_km_estimation+=route.km_estimation
+            self.time_estimation = total_time_estimation
+            self.km_estimation = total_km_estimation
+       
+        super().save(*args, **kwargs)
 
     # end def
     # shift_time_efficiency = models.FloatField(null=True, blank=True) #total routes time estimation/ shift duration
@@ -227,16 +239,7 @@ class Shift(models.Model):
             return self.out_km-self.in_km
         else:
             return None
-    
-    @property
-    def shif_km_conflicts(self):
-        if self.shif_km and self.routes:
-            total_km_estimation = 0
-            for route in self.routes.all():
-                total_km_estimation+=route.km_estimation
-            return self.shif_km/total_km_estimation
-        else:
-            return None
+
     
     @property
     def shift_total_load(self):
@@ -256,6 +259,22 @@ class Shift(models.Model):
             return total_load/total_load_estimation
         else:
             return None
+        
+    @property
+    def shif_km_conflicts(self):
+        if self.shif_km and self.routes:
+            total_km_estimation = 0
+            for route in self.routes.all():
+                total_km_estimation+=route.km_estimation
+            return self.shif_km/total_km_estimation
+        else:
+            return None
+    @property
+    def shift_time_efficiency(self):
+        if self.duration and self.time_estimation:
+            return self.time_estimation/self.duration
+        else: 
+            return None
                 
     class Meta:
         unique_together = ['shift_name', 'vehicle', 'shift_date']
@@ -274,12 +293,14 @@ class TripHistory(models.Model):
     trip_date = models.DateField(auto_now_add=True)
     trip_start_time = models.DateTimeField(auto_now_add=True)
     updted_on = models.DateTimeField(auto_now=True)
+
     trip_end_time = models.DateTimeField(null=True, blank=True)
     trip_load = models.IntegerField()  # in kg
     trip_remark = models.TextField(null=True, blank=True)
     # Method Fields set by overwriting save method
     trip_count = models.IntegerField(default=0) # method field have to be increased +1 in backend
-    trip_efficiency = models.FloatField(default=0) 
+    trip_efficiency = models.FloatField(default=0)
+
     def save(self, *args, **kwargs):
         if not self.trip_count:
             existing_trips = TripHistory.objects.filter(shift=self.shift, vehicle=self.vehicle, trip_date=self.trip_date)
