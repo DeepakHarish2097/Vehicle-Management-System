@@ -28,9 +28,9 @@
                     <tr onclick="location.href='{% url 'shift_details' shift.id %}'">
                         <td>{{shift.vehicle}}</td>
                         <td>{{shift.shift_name}}</td>
-                        <td>{{shift.shift_load_efficiency}}</td>
-                        <td>{{shift.shift_time_efficiency}}</td>
-                        <td>{{shift.shift_km_conflicts}}</td>
+                        <td {% if shift.shift_load_efficiency < 80 %}class="table-danger"{% endif %}>{{shift.shift_load_efficiency}}</td>
+                        <td {% if shift.shift_time_efficiency < 80 %}class="table-danger"{% endif %}>{{shift.shift_time_efficiency}}</td>
+                        <td {% if shift.shift_km_conflicts > 20 %}class="table-danger"{% endif %}>{{shift.shift_km_conflicts}}</td>
                     </tr>
                 {% endfor %}
             </tbody>

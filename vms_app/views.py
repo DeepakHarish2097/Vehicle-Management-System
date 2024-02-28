@@ -566,7 +566,7 @@ def end_shift(request, id: int): # this id belongs to trip_object here now
 @active_required
 def productivity_list(request):
     # return HttpResponse("Test")
-    shifts = Shift.objects.all()
+    shifts = Shift.objects.filter(end_time__isnull=False)
     
     context = {
         "menu": "menu-productivity",
