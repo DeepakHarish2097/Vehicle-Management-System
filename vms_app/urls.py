@@ -70,6 +70,10 @@ urlpatterns = [
     path('add-accident-log/', views.create_accident_log, name='create_accident_log'),
     path('edit-accident-log/<int:id>/', views.edit_accident_log, name='edit_accident_log'),
 
+    # Workshop Urls
+    path('workshop-list/', views.workshop_list, name='workshop_list'),
+    path('add-workshop/', views.create_workshop, name='create_workshop'),
+    path('edit-workshop/<int:id>/', views.edit_workshop, name='edit_workshop'),
 
     # dummy trials
     path('testingnew/', views.testing_new, name='testing_new'),

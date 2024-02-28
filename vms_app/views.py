@@ -680,6 +680,52 @@ def edit_accident_log(request, id: int):
     return render(request, 'vms_app/forms.html', context)
 
 
-
 def testing_new(request):
     return render(request, 'vms_app/test.html', {})
+
+
+# /////////////////// Workshop Views \\\\\\\\\\\\\\\\\\\
+@login_required(login_url='login')
+@active_required
+def workshop_list(request):
+    workshop_list = Workshop.objects.all()
+    context = {
+        "menu": "menu-workshop",
+        "workshop_list": workshop_list
+    }
+    return render(request, 'vms_app/workshop_list.html', context)
+
+
+@login_required(login_url='login')
+@active_required
+def create_workshop(request):
+    form = WorkshopForm()
+    if request.method == 'POST':
+        form = WorkshopForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('workshop_list')
+    context = {
+        "form": form,
+        "menu": "menu-workshop",
+        "form_title": "New Workshop",
+    }
+    return render(request, 'vms_app/forms.html', context)
+
+
+@login_required(login_url='login')
+@active_required
+def edit_workshop(request, id: int):
+    workshop = Workshop.objects.get(id=id)
+    form = WorkshopForm(instance=workshop)
+    if request.method == 'POST':
+        form = WorkshopForm(request.POST, instance=workshop)
+        if form.is_valid():
+            form.save()
+            return redirect('workshop_list')
+    context = {
+        "form": form,
+        "menu": "menu-workshop",
+        "form_title": "Edit Workshop",
+    }
+    return render(request, 'vms_app/forms.html', context)

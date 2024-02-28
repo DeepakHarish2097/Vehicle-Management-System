@@ -139,6 +139,13 @@ class AccidentLogForm(forms.ModelForm):
             'accident_time': DateTimeInput()
         }
 
+
+class WorkshopForm(forms.ModelForm):
+    class Meta:
+        model = Workshop
+        fields = '__all__'
+
+
 class TripHistoryForm(forms.ModelForm):
     
     class Meta:

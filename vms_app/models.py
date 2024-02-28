@@ -41,8 +41,6 @@ class Employee(AbstractBaseUser, PermissionsMixin):
         return self.name
 
 
-
-
 class Workshop(models.Model):
     workshop_name = models.CharField(max_length=50)
     incharge = models.CharField(max_length=50, null=True, blank=True)
@@ -340,10 +338,6 @@ class TripHistory(models.Model):
             self.trip_efficiency=self.trip_load/self.vehicle.load_estimation
         super().save(*args, **kwargs)
         # self.save(update_fields=['trip_load', 'trip_count'])
-       
-       
-        
-
 
 
 class TransferRegister(models.Model):
