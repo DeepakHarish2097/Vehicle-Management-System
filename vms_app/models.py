@@ -417,8 +417,8 @@ class fuel_master(models.Model):
                   ('D', 'Diesel'),
                   ('G', 'Gas')]
     fuel_type=models.CharField(max_length=1, choices=fuel_choices)
-    fuel_km = models.FloatField()
-    fuel_Time=models.DateTimeField()
+    fuel_km = models.FloatField(null=True, blank=True)
+    fuel_Date=models.DateField(null=True, blank=True)
     fuel_quantiry = models.FloatField(default=1)
     fuel_cost=models.FloatField(default=102.6)
     
