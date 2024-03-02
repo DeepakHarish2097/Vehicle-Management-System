@@ -411,7 +411,24 @@ class IncidentLog(models.Model):
     remark = models.TextField()
 
 
-# class MaintenanceHistory(models.Model):
-#     pass
+class fuel_master(models.Model):
+    vehicle = models.ForeignKey(Vehicle, related_name='vehicle_fuel_history', on_delete=models.PROTECT)
+    fuel_choices=[('P', 'Petrol'),
+                  ('D', 'Diesel'),
+                  ('G', 'Gas')]
+    fuel_type=models.CharField(max_length=1, choices=fuel_choices)
+    fuel_km = models.FloatField()
+    fuel_Time=models.DateTimeField()
+    fuel_quantiry = models.FloatField(default=1)
+    fuel_cost=models.FloatField(default=102.6)
+    
+    # OBJECT LOG
+    created_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name='employee_fuel_history')
+    created_on = models.DateTimeField(auto_now_add=True)
+    updated_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name='employee_fuelupdate_history')
+    updated_on = models.DateTimeField(auto_now=True)
+    
 
 
