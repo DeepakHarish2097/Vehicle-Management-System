@@ -219,7 +219,7 @@ class Shift(models.Model):
                 # Update the instance with new estimations
                 super().save(*args, **kwargs)
 
-    # end def
+    
     # shift_time_efficiency = models.FloatField(null=True, blank=True) #total routes time estimation/ shift duration
     # shift_km_efficiency = models.FloatField(null=True, blank=True) #total km estimation of the routes covered/ (in-out km)
     # shift_load_efficiency = models.FloatField(null=True, blank=True) # avg of total trip efficiency of that shift
