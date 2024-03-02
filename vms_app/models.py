@@ -264,13 +264,16 @@ class Shift(models.Model):
         
     @property
     def shift_km_conflicts(self):
-        if self.shift_km and self.routes:
-            total_km_estimation = 0
-            for route in self.routes.all():
-                total_km_estimation+=route.km_estimation
-            return self.shift_km/total_km_estimation
-        else:
-            return None
+        try:
+            if self.shift_km and self.routes:
+                total_km_estimation = 0
+                for route in self.routes.all():
+                    total_km_estimation+=route.km_estimation
+                return self.shift_km/total_km_estimation
+        except Exception as e:
+            pass
+        
+        return None
         
     @property
     def shift_time_efficiency(self):
