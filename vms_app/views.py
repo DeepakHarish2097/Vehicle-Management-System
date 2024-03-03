@@ -1,8 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import Employee, Vehicle, Route, Productivity, Zone, Ward, \
-    TransferRegister, AccidentLog, Shift
 from .models import *
 from .forms import *
 from .decorators import superuser_required, active_required
@@ -729,3 +727,165 @@ def edit_workshop(request, id: int):
         "form_title": "Edit Workshop",
     }
     return render(request, 'vms_app/forms.html', context)
+
+
+# /////////////////// Fuel Master Views \\\\\\\\\\\\\\\\\\\
+@login_required(login_url='login')
+@active_required
+def fuel_log_list(request):
+    fuel_logs = FuelMaster.objects.all()
+
+    context = {
+        "fuel_logs": fuel_logs,
+        "menu": "menu-fuel-log"
+    }
+
+    return render(request, 'vms_app/fuel_logs_list.html', context)
+
+
+@login_required(login_url='login')
+@active_required
+def add_fuel_log(request):
+    form = FuelMasterForm()
+    if request.method == "POST":
+        form = FuelMasterForm(request.POST)
+        if form.is_valid():
+            fuel_log = form.save()
+            fuel_log.created_by = request.user
+            return redirect('fuel_log_list')
+        
+    context = {
+        "form": form,
+        "menu": "menu-fuel-log",
+        "form_title": "Add Fuel Log"
+    }
+
+    return render(request, 'vms_app/forms.html', context)
+
+
+@login_required(login_url='login')
+@active_required
+def edit_fuel_log(request, id):
+    fuel_log = FuelMaster.objects.get(pk=id)
+    form = FuelMasterForm(instance=fuel_log)
+    if request.method == "POST":
+        form = FuelMasterForm(request.POST, instance=fuel_log)
+        if form.is_valid():
+            log = form.save()
+            log.updated_by = request.user
+
+            return redirect('fuel_log_list')
+        
+    context = {
+        "form": form,
+        "menu": "menu-fuel-log",
+        "form_title": "Edit Fuel Log"
+    }
+
+    return render(request, 'vms_app/forms.html', context)
+
+
+def get_fuel_efficiency_data(vehicle_fuel_logs):
+    total_fuel_quantity = vehicle_fuel_logs.aggregate(total_fuel_quantity=models.Sum('fuel_quantity'))['total_fuel_quantity']
+    total_fuel_cost = round(vehicle_fuel_logs.aggregate(total_fuel_cost=models.Sum('fuel_cost'))['total_fuel_cost'], 2)
+    first_fuel_log = vehicle_fuel_logs.first()
+    last_fuel_log = vehicle_fuel_logs.last()
+    average_mileage = round((last_fuel_log.fuel_km-first_fuel_log.fuel_km)/total_fuel_quantity, 2)
+    return {
+        "total_fuel_quantity": total_fuel_quantity, 
+        "total_fuel_cost": total_fuel_cost, 
+        "total_km": last_fuel_log.fuel_km, 
+        "average_mileage": average_mileage
+    }
+
+
+@login_required(login_url='login')
+@active_required
+def fuel_efficieny_week_view(request):
+    vehicles = Vehicle.objects.filter(is_active=True)
+    fuel_efficiency_list = []
+    for vehicle in vehicles:
+        today = timezone.now()
+        start_date = today - timezone.timedelta(days=today.weekday())
+        end_date = start_date + timezone.timedelta(days=7)
+        vehicle_fuel_logs = vehicle.vehicle_fuel_history.filter(
+            fuel_date__gte=start_date,
+            fuel_date__lte=end_date
+        ).order_by("fuel_date")
+        
+        if len(vehicle_fuel_logs) > 1:
+            fuel_efficiency_data = get_fuel_efficiency_data(vehicle_fuel_logs)
+            fuel_efficiency_list.append({
+                "vehicle": vehicle, 
+                **fuel_efficiency_data
+            })
+    context = {
+        "view_title": today.strftime("Week-%W %B %Y"),
+        "fuel_logs": fuel_efficiency_list,
+        "menu": "menu-fuel-log",
+    }
+    return render(request, 'vms_app/fuel_efficiency_list.html', context)
+
+
+@login_required(login_url='login')
+@active_required
+def fuel_efficieny_month_view(request):
+    vehicles = Vehicle.objects.filter(is_active=True)
+    fuel_efficiency_list = []
+    for vehicle in vehicles:
+        today = timezone.now()
+        current_year = today.year
+        current_month = today.month
+        vehicle_fuel_logs = vehicle.vehicle_fuel_history.filter(
+            fuel_date__year=current_year,
+            fuel_date__month=current_month
+        ).order_by("fuel_date")
+        
+        if len(vehicle_fuel_logs) > 1:
+            fuel_efficiency_data = get_fuel_efficiency_data(vehicle_fuel_logs)
+            fuel_efficiency_list.append({
+                "vehicle": vehicle, 
+                **fuel_efficiency_data
+            })
+    context = {
+        "view_title": today.strftime("%B %Y"),
+        "fuel_logs": fuel_efficiency_list,
+        "menu": "menu-fuel-log",
+    }
+    return render(request, 'vms_app/fuel_efficiency_list.html', context)
+
+
+@login_required(login_url='login')
+@active_required
+def fuel_efficieny_custom_view(request):
+    today = timezone.now()
+    data = {
+        "start": today,
+        "end": today,
+    }
+    if request.method == "POST":
+        form = FuelEfficiencyForm(request.POST)
+        if form.is_valid():
+            data=form.cleaned_data
+
+    vehicles = Vehicle.objects.filter(is_active=True)
+    fuel_efficiency_list = []
+    for vehicle in vehicles:
+        vehicle_fuel_logs = vehicle.vehicle_fuel_history.filter(
+            fuel_date__gte=data['start'],
+            fuel_date__lte=data['end']
+        ).order_by("fuel_date")
+        
+        if len(vehicle_fuel_logs) > 1:
+            fuel_efficiency_data = get_fuel_efficiency_data(vehicle_fuel_logs)
+            fuel_efficiency_list.append({
+                "vehicle": vehicle, 
+                **fuel_efficiency_data
+            })
+    context = {
+        "view_title": "Custom Report",
+        "fuel_logs": fuel_efficiency_list,
+        "data": data,
+        "menu": "menu-fuel-log",
+    }
+    return render(request, 'vms_app/fuel_efficiency_list.html', context)

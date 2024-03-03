@@ -64,16 +64,6 @@ class Vehicle_rud(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = VehicleSerializer
 
 
-class Productivity_lcv(generics.ListCreateAPIView):
-    queryset = Productivity.objects.all()
-    serializer_class = ProductivitySerializer
-
-
-class Productivity_rud(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Productivity.objects.all()
-    serializer_class = ProductivitySerializer
-
-
 class TransferRegister_lcv(generics.ListCreateAPIView):
     queryset = TransferRegister.objects.all()
     serializer_class = TransferRegisterSerializer

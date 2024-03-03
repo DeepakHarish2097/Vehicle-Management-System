@@ -39,12 +39,6 @@ class VehicleSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ProductivitySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Productivity
-        fields = '__all__'
-
-
 class TransferRegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = TransferRegister

@@ -1,6 +1,4 @@
 from django import forms
-from .models import Employee, Vehicle, Route, Productivity, Zone, Ward, \
-    TransferRegister, AccidentLog, Shift
 from .models import *
 from django.contrib.auth.forms import UserCreationForm
 from django.forms.widgets import DateInput, TimeInput
@@ -67,32 +65,6 @@ class EmployeeEditForm(forms.ModelForm):
         self.fields['remark'].widget.attrs.update({'rows': '3'})
 
 
-class ProductivityForm(forms.ModelForm):
-    class Meta:
-        model = Productivity
-        fields = ['shift', 'vehicle', 'start', 'out_km', 'routes', 'driver', 'start_image']
-        widgets = {
-            'start': DateTimeInput()
-        }
-
-
-class ProductivityEndForm(forms.ModelForm):
-    class Meta:
-        model = Productivity
-        fields = ['trip_ton', 'in_km', 'end_image']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['trip_ton'].required = True
-        self.fields['in_km'].required = True
-        self.fields['end_image'].required = True
-
-
-class ProductivityReportForm(forms.Form):
-    start = forms.DateField()
-    end = forms.DateField()
-
-
 class ShiftForm(forms.ModelForm):
     class Meta:
         model = Shift
@@ -147,8 +119,21 @@ class WorkshopForm(forms.ModelForm):
 
 
 class TripHistoryForm(forms.ModelForm):
-    
     class Meta:
         model = TripHistory
         fields = ('trip_load', 'trip_remark')
 
+
+class FuelMasterForm(forms.ModelForm):
+    
+    class Meta:
+        model = FuelMaster
+        fields = ("vehicle", "fuel_type", "fuel_km", "fuel_date", "fuel_quantity", "fuel_cost",)
+        widgets = {
+            'fuel_date': DateInput(attrs={'type': 'date'}),
+        }
+
+
+class FuelEfficiencyForm(forms.Form):
+    start = forms.DateField()
+    end = forms.DateField()

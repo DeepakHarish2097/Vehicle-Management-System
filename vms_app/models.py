@@ -127,57 +127,6 @@ class Vehicle(models.Model):
         return self.vehicle_number+str(self.supervisor)
 
 
-class Productivity(models.Model):
-    choices_shifts = [
-        ('I', 'I'),
-        ('II', 'II'),
-        ('III', 'III'),
-        ('Others', 'Others')
-    ]
-    vehicle = models.ForeignKey(Vehicle, related_name="vehicle_productivity_set", on_delete=models.PROTECT,
-                                limit_choices_to={'is_active': True, 'is_working': False})
-    start = models.DateTimeField(default=timezone.now)
-    out_km = models.FloatField(null=True, blank=True, default=0.0)
-    start_image = models.ImageField(upload_to='productivity_start/')
-    end = models.DateTimeField(null=True, blank=True)
-    in_km = models.FloatField(null=True, blank=True, default=0.0)
-    end_image = models.ImageField(upload_to='productivity_end/', null=True, blank=True)
-    created_on = models.DateTimeField(auto_now_add=True)
-    created_date = models.DateField(auto_now_add=True)
-    shift = models.CharField(max_length=100, choices=choices_shifts)
-    routes = models.ManyToManyField(Route, blank=False, limit_choices_to={'is_active': True, 'is_working': False})
-    estimation = models.IntegerField(null=True, blank=True)
-    driver = models.CharField(max_length=500, default='Vendor')
-    day_production = models.IntegerField(null=True, blank=True)
-    total_trip = models.IntegerField(null=True, blank=True, default=1)
-    first_trip_ton = models.IntegerField(null=True, blank=True)
-    second_trip_ton = models.IntegerField(null=True, blank=True)
-    third_trip_ton = models.IntegerField(null=True, blank=True)
-    fourth_trip_ton = models.IntegerField(null=True, blank=True)
-    fifth_trip_ton = models.IntegerField(null=True, blank=True)
-    sixth_trip_ton = models.IntegerField(null=True, blank=True)
-    trip_ton = models.IntegerField(default=0, null=True, blank=True)
-
-    def __str__(self) -> str:
-        return f"[{self.vehicle}] {self.driver}"
-
-    @property
-    def conflict(self):
-        if self.estimation and self.day_production:
-            return (abs(self.estimation - self.day_production) / self.estimation) * 100
-        else:
-            return
-
-    @property
-    def total_ton(self):
-        total_ton = self.first_trip_ton + self.second_trip_ton + self.third_trip_ton + self.fourth_trip_ton + \
-                    self.fifth_trip_ton + self.sixth_trip_ton
-        return total_ton
-
-    class Meta:
-        unique_together = ['shift', 'vehicle', 'created_date']
-
-
 class Shift(models.Model):
     choices_shifts = [
         ('I', 'I'),
@@ -277,9 +226,10 @@ class Shift(models.Model):
         
     @property
     def shift_time_efficiency(self):
-        if self.shift_duration and self.time_estimation:
-            return 100 * self.time_estimation/(self.shift_duration.total_seconds()//60)
-        else: 
+        try:
+            if self.shift_duration and self.time_estimation:
+                return 100 * self.time_estimation/(self.shift_duration.total_seconds()//60)
+        except Exception as e: 
             return None
         
     @property
@@ -411,24 +361,22 @@ class IncidentLog(models.Model):
     remark = models.TextField()
 
 
-class fuel_master(models.Model):
-    vehicle = models.ForeignKey(Vehicle, related_name='vehicle_fuel_history', on_delete=models.PROTECT)
-    fuel_choices=[('P', 'Petrol'),
-                  ('D', 'Diesel'),
-                  ('G', 'Gas')]
+class FuelMaster(models.Model):
+    vehicle = models.ForeignKey(Vehicle, related_name='vehicle_fuel_history', on_delete=models.PROTECT,
+                                limit_choices_to={'is_active': True})
+    fuel_choices = [
+        ('P', 'Petrol'),
+        ('D', 'Diesel'),
+        ('G', 'Gas')
+    ]
     fuel_type=models.CharField(max_length=1, choices=fuel_choices)
     fuel_km = models.FloatField(null=True, blank=True)
-    fuel_Date=models.DateField(null=True, blank=True)
-    fuel_quantiry = models.FloatField(default=1)
+    fuel_date=models.DateField(null=True, blank=True)
+    fuel_quantity = models.FloatField(default=1)
     fuel_cost=models.FloatField(default=102.6)
-    
-    # OBJECT LOG
     created_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='employee_fuel_history')
     created_on = models.DateTimeField(auto_now_add=True)
     updated_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='employee_fuelupdate_history')
     updated_on = models.DateTimeField(auto_now=True)
-    
-
-

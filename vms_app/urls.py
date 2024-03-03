@@ -74,6 +74,14 @@ urlpatterns = [
     path('workshop-list/', views.workshop_list, name='workshop_list'),
     path('add-workshop/', views.create_workshop, name='create_workshop'),
     path('edit-workshop/<int:id>/', views.edit_workshop, name='edit_workshop'),
+    
+    # Fuel Log Urls
+    path('fuel-log-list/', views.fuel_log_list, name='fuel_log_list'),
+    path('add-fuel-log/', views.add_fuel_log, name='add_fuel_log'),
+    path('edit-fuel-log/<int:id>/', views.edit_fuel_log, name='edit_fuel_log'),
+    path('fuel-efficieny-view/week/', views.fuel_efficieny_week_view, name='fuel_efficieny_week_view'),
+    path('fuel-efficieny-view/month/', views.fuel_efficieny_month_view, name='fuel_efficieny_month_view'),
+    path('fuel-efficieny-view/custom/', views.fuel_efficieny_custom_view, name='fuel_efficieny_custom_view'),
 
     # dummy trials
     path('testingnew/', views.testing_new, name='testing_new'),
@@ -91,8 +99,6 @@ urlpatterns = [
     path('test/route/<int:pk>/', Route_rud.as_view(), name='Route_rud'),
     path('test/vehicle/', Vehicle_lcv.as_view(), name='Vehicle_lcv'),
     path('test/vehicle/<int:pk>/', Vehicle_rud.as_view(), name='Vehicle_rud'),
-    path('test/productivity/', Productivity_lcv.as_view(), name='Productivity_lcv'),
-    path('test/productivity/<int:pk>/', Productivity_rud.as_view(), name='Productivity_rud'),
     path('test/transfer-register/', TransferRegister_lcv.as_view(), name='Transfer_Register_lcv'),
     path('test/transfer-register/<int:pk>/', TransferRegister_rud.as_view(), name='Transfer_Register_rud'),
 ]
