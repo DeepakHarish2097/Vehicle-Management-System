@@ -380,3 +380,24 @@ class FuelMaster(models.Model):
     updated_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='employee_fuelupdate_history')
     updated_on = models.DateTimeField(auto_now=True)
+
+
+
+class Maintanence(models.Model):
+    pass
+
+class JobCard(models.Model):
+    vehicle = models.ForeignKey(Vehicle, related_name='vehicle_maintanence_history', 
+                                on_delete=models.PROTECT, limit_choices_to={'is_active': True})
+    workshop = models.ForeignKey(Workshop, related_name='workshop_jobs',
+                                 on_delete=models.PROTECT)
+    assigned_on = models.DateTimeField(auto_now_add=True)
+    work_start_at = models.DateTimeField(null=True, blank=True)
+    work_closed_at = models.DateTimeField(null=True, blank=True)
+    work = models.CharField(max_length=250, blank=True, null=True)
+    spares = models.CharField(max_length=500, blank=True, null=True)
+    cost = models.FloatField(null=True, blank=True)
+    mechanics = models.CharField(max_length=500, blank=True, null=True)
+    driver = models.CharField(max_length=500, blank=True, null=True)
+    remark = models.CharField(max_length=500, blank=True, null=True)
+    
