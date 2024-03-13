@@ -137,3 +137,11 @@ class FuelMasterForm(forms.ModelForm):
 class FuelEfficiencyForm(forms.Form):
     start = forms.DateField()
     end = forms.DateField()
+
+
+class JobCardForm(forms.ModelForm):
+    
+    class Meta:
+        model = JobCard
+        fields = ('vehicle', 'workshop', 'work', 'spares', 'cost', 'mechanics', 'driver', 'remark')
+

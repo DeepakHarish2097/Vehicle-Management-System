@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h4 class="fw-bold py-3 mb-4">Job Cards</h4>
+
+<div class="row">
+    <div class="col-auto">
+        <a href="{% url 'add_job_card' %}" class="btn btn-primary">
+            <span class="tf-icons bx bx-list-plus"></span> Add Job Card
+        </a>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="table-responsive text-nowrap mt-2">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>vehicle</th>
+                    <th>workshop</th>
+                    <th>assigned on</th>
+                    <th>work</th>
+                    <th>spares</th>
+                    <th>work start at</th>
+                    <th>work closed at</th>
+                    <th>cost</th>
+                    <th>mechanics</th>
+                    <th>driver</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody class="table-border-bottom-0">
+                {% for job in job_cards %}
+                    <tr>
+                        <td>{{job.vehicle}}</td>
+                        <td>{{job.workshop}}</td>
+                        <td>{{job.assigned_on}}</td>
+                        <td>{{job.work}}</td>
+                        <td>{{job.spares}}</td>
+                        <td>{{job.work_start_at}}</td>
+                        <td>{{job.work_closed_at}}</td>
+                        <td>{{job.cost}}</td>
+                        <td>{{job.mechanics}}</td>
+                        <td>{{job.driver}}</td>
+                        <td>
+                            <div class="dropdown">
+                                <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                  <i class="bx bx-dots-vertical-rounded"></i>
+                                </button>
+                                <div class="dropdown-menu">
+                                    <a class="dropdown-item" href="{% url 'edit_job_card' job.id %}">
+                                        <i class='bx bxs-edit'></i>&nbsp;&nbsp;Edit
+                                    </a>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock content %}

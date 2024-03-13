@@ -83,6 +83,11 @@ urlpatterns = [
     path('fuel-efficieny-view/month/', views.fuel_efficieny_month_view, name='fuel_efficieny_month_view'),
     path('fuel-efficieny-view/custom/', views.fuel_efficieny_custom_view, name='fuel_efficieny_custom_view'),
 
+    # Job Card Urls
+    path('job-card-list/', views.job_card_list, name="job_card_list"),
+    path('add-job-card/', views.add_job_card, name="add_job_card"),
+    path('edit-job-card/<int:id>/', views.edit_job_card, name="edit_job_card"),
+
     # dummy trials
     path('testingnew/', views.testing_new, name='testing_new'),
 

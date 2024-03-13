@@ -889,3 +889,50 @@ def fuel_efficieny_custom_view(request):
         "menu": "menu-fuel-log",
     }
     return render(request, 'vms_app/fuel_efficiency_list.html', context)
+
+
+# /////////////////// Job Card Views \\\\\\\\\\\\\\\\\\\
+@login_required(login_url='login')
+@active_required
+def job_card_list(request):
+    job_cards = JobCard.objects.all()
+    context = {
+        "menu": "menu-job-card",
+        "job_cards": job_cards
+    }
+    return render(request, 'vms_app/job_card_list.html', context)
+
+
+@login_required(login_url='login')
+@active_required
+def add_job_card(request):
+    form = JobCardForm()
+    if request.method == "POST":
+        form = JobCardForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('job_card_list')
+    context = {
+        "menu": "menu-job-card",
+        "form": form,
+        "form_title": "Add Job Card"
+    }
+    return render(request, 'vms_app/forms.html', context)
+
+
+@login_required(login_url='login')
+@active_required
+def edit_job_card(request, id):
+    job_card = JobCard.objects.get(id=id)
+    form = JobCardForm(instance=job_card)
+    if request.method == "POST":
+        form = JobCardForm(request.POST, instance=job_card)
+        if form.is_valid():
+            form.save()
+            return redirect('job_card_list')
+    context = {
+        "menu": "menu-job-card",
+        "form": form,
+        "form_title": "Edit Job Card"
+    }
+    return render(request, 'vms_app/forms.html', context)
