@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.db.models import Sum
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import *
@@ -864,7 +865,7 @@ def fuel_efficieny_custom_view(request):
         "end": today,
     }
     if request.method == "POST":
-        form = FuelEfficiencyForm(request.POST)
+        form = CustomDateFilterForm(request.POST)
         if form.is_valid():
             data=form.cleaned_data
 
@@ -936,3 +937,66 @@ def edit_job_card(request, id):
         "form_title": "Edit Job Card"
     }
     return render(request, 'vms_app/forms.html', context)
+
+
+@login_required(login_url='login')
+@active_required
+def start_job_card(request, id):
+    try:
+        job_card = JobCard.objects.get(id=id)
+        job_card.work_start_at = timezone.now()
+        job_card.save()
+    except JobCard.DoesNotExist:
+        pass
+    return redirect('job_card_list')
+
+
+@login_required(login_url='login')
+@active_required
+def end_job_card(request, id):
+    try:
+        job_card = JobCard.objects.get(id=id)
+        job_card.work_closed_at = timezone.now()
+        job_card.save()
+    except JobCard.DoesNotExist:
+        pass
+    return redirect('job_card_list')
+
+
+@login_required(login_url='login')
+@active_required
+def vehicle_job_history(request):
+    current_datetime = timezone.now()
+    start_of_month = current_datetime.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    next_month = start_of_month.replace(month=start_of_month.month + 1)
+    end_of_month = next_month - timezone.timedelta(days=1)
+    data = {
+        "start": start_of_month,
+        "end": end_of_month
+    }
+
+    if request.method == "POST":
+        form = CustomDateFilterForm(request.POST)
+        if form.is_valid():
+            data=form.cleaned_data
+
+    vehicles = Vehicle.objects.filter(is_active=True)
+    vehicle_maintanence_history = []
+    for vehicle in vehicles:
+        vehicle_maintanence_log = vehicle.vehicle_maintanence_history.filter(
+            work_start_at__gte=data['start'],
+            work_start_at__lte=data['end']
+        )
+
+        vehicle_maintanence_history.append({
+            "vehicle": vehicle,
+            "total_count": len(vehicle_maintanence_log),
+            "total_cost": vehicle_maintanence_log.aggregate(total_cost=Sum('cost'))['total_cost']
+        })
+
+    context = {
+        "menu": "menu-job-card",
+        "data": data,
+        "vehicle_maintanence_history": vehicle_maintanence_history,
+    }
+    return render(request, 'vms_app/vehicle_job_history.html', context)

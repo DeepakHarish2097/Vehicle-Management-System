@@ -87,6 +87,9 @@ urlpatterns = [
     path('job-card-list/', views.job_card_list, name="job_card_list"),
     path('add-job-card/', views.add_job_card, name="add_job_card"),
     path('edit-job-card/<int:id>/', views.edit_job_card, name="edit_job_card"),
+    path('start-job-card/<int:id>/', views.start_job_card, name="start_job_card"),
+    path('end-job-card/<int:id>/', views.end_job_card, name="end_job_card"),
+    path('vehicle-job-history/', views.vehicle_job_history, name="vehicle_job_history"),
 
     # dummy trials
     path('testingnew/', views.testing_new, name='testing_new'),

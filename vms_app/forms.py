@@ -89,7 +89,7 @@ class ShiftEndForm(forms.Form):
     end_image = forms.ImageField(required=False)
     
 
-class ShiftReportForm(forms.Form):
+class CustomDateFilterForm(forms.Form):
     start = forms.DateField()
     end = forms.DateField()
 
@@ -134,14 +134,8 @@ class FuelMasterForm(forms.ModelForm):
         }
 
 
-class FuelEfficiencyForm(forms.Form):
-    start = forms.DateField()
-    end = forms.DateField()
-
-
 class JobCardForm(forms.ModelForm):
     
     class Meta:
         model = JobCard
         fields = ('vehicle', 'workshop', 'work', 'spares', 'cost', 'mechanics', 'driver', 'remark')
-
