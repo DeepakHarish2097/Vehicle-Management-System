@@ -1000,3 +1000,16 @@ def vehicle_job_history(request):
         "vehicle_maintanence_history": vehicle_maintanence_history,
     }
     return render(request, 'vms_app/vehicle_job_history.html', context)
+
+
+@login_required(login_url='login')
+@active_required
+def vehicle_maintanence_view(request, id):
+    vehicle = Vehicle.objects.get(id=id)
+    vehicle_maintanence_log = vehicle.vehicle_maintanence_history.all()
+    context = {
+        "menu": "menu-job-card",
+        "vehicle": vehicle,
+        "vehicle_maintanence_log": vehicle_maintanence_log
+    }
+    return render(request, 'vms_app/vehicle_maintanence_view.html', context)

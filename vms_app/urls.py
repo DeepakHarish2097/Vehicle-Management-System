@@ -90,6 +90,7 @@ urlpatterns = [
     path('start-job-card/<int:id>/', views.start_job_card, name="start_job_card"),
     path('end-job-card/<int:id>/', views.end_job_card, name="end_job_card"),
     path('vehicle-job-history/', views.vehicle_job_history, name="vehicle_job_history"),
+    path('vehicle-maintanence-view/<int:id>/', views.vehicle_maintanence_view, name="vehicle_maintanence_view"),
 
     # dummy trials
     path('testingnew/', views.testing_new, name='testing_new'),

@@ -1,5 +1,13 @@
 {% extends "base.html" %}
 
+{% block custom_style %}
+<style>
+    tbody tr:hover {
+        cursor: pointer;
+    }
+</style>
+{% endblock custom_style %}
+
 {% block content %}
 <h4 class="fw-bold py-3 mb-4">Vehicle Maintanence History</h4>
 
@@ -37,7 +45,7 @@
             </thead>
             <tbody>
                 {% for vehicle in vehicle_maintanence_history %}
-                    <tr>
+                    <tr onclick="location.href='{% url 'vehicle_maintanence_view' vehicle.vehicle.id %}'">
                         <td>{{vehicle.vehicle}}</td>
                         <td>{{vehicle.total_count}}</td>
                         <td>{{vehicle.total_cost}}</td>
