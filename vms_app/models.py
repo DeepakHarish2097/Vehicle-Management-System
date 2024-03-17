@@ -383,8 +383,29 @@ class FuelMaster(models.Model):
 
 
 
-class Maintanence(models.Model):
-    pass
+class MaintenanceSchedules(models.Model):
+    '''
+    Model objectives:
+    Have list the history of service done for evey vehicles
+    Have to list the vehicles who are missed thier date
+    Have to check the km gap between services 
+    user display table should have only pending status. The admin can see get all queryset
+    The display table should have two colors to discriminate overdue and normal
+    By clicking the vehicle in table should lead to schedule history of the vehicle.
+    Thats all for now
+    '''
+    service_choices = [('SS1 WITH ENGINE OIL & FILTER', 'SS1 WITH ENGINE OIL & FILTER'),
+                        ('SS Gen WITHOUT ENGINE OIL & FILTER', 'SS Gen WITHOUT ENGINE OIL & FILTER'),
+                        ('SS2', 'SS2'), ('SS3', 'SS3'), ('SS4', 'SS4')] 		 
+
+    vehicle = models.ForeignKey(Vehicle, related_name='vehicle_shcedule_history',
+                                on_delete=models.PROTECT, limit_choices_to={'is_active':True})
+    odo_closing = models.FloatField(default=0)
+    service = models.CharField(max_length=250, choices=service_choices)
+    scheduled_date =  models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=50, choices= [('Done', 'Done'), ('Pending', 'Pending')])
+    
+    
 
 class JobCard(models.Model):
     vehicle = models.ForeignKey(Vehicle, related_name='vehicle_maintanence_history', 
