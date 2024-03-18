@@ -945,6 +945,9 @@ def start_job_card(request, id):
     try:
         job_card = JobCard.objects.get(id=id)
         job_card.work_start_at = timezone.now()
+        job_card.status = 'Working'
+        if request.user.is_mechanic:
+            job_card.mechanics = request.user.name
         job_card.save()
     except JobCard.DoesNotExist:
         pass
@@ -956,11 +959,24 @@ def start_job_card(request, id):
 def end_job_card(request, id):
     try:
         job_card = JobCard.objects.get(id=id)
-        job_card.work_closed_at = timezone.now()
-        job_card.save()
+        form = EndJobCardForm(instance=job_card)
+        if request.method == "POST":
+            form = EndJobCardForm(request.POST, instance=job_card)
+            if form.is_valid():
+                job_card_form = form.save(commit=False)
+                job_card_form.work_closed_at = timezone.now()
+                job_card_form.status = 'Completed'
+                job_card_form.save()
+                return redirect('job_card_list')
+        context = {
+            "menu": "menu-job-card",
+            "form": form,
+            "form_title": "End Job Card"
+        }
+        return render(request, 'vms_app/forms.html', context)
     except JobCard.DoesNotExist:
         pass
-    return redirect('job_card_list')
+        return redirect('job_card_list')
 
 
 @login_required(login_url='login')
@@ -1004,7 +1020,7 @@ def vehicle_job_history(request):
 
 @login_required(login_url='login')
 @active_required
-def vehicle_maintanence_view(request, id):
+def vehicle_job_view(request, id):
     vehicle = Vehicle.objects.get(id=id)
     vehicle_maintanence_log = vehicle.vehicle_maintanence_history.all()
     context = {
@@ -1012,4 +1028,107 @@ def vehicle_maintanence_view(request, id):
         "vehicle": vehicle,
         "vehicle_maintanence_log": vehicle_maintanence_log
     }
-    return render(request, 'vms_app/vehicle_maintanence_view.html', context)
+    return render(request, 'vms_app/vehicle_job_view.html', context)
+
+
+# /////////////////// Maintenance Schedules Views \\\\\\\\\\\\\\\\\\\
+def maintenance_schedule_list(request):
+    # vehicles = Vehicle.objects.filter(is_active=True)
+    # maintenance_list = []
+    # current_date = datetime.datetime.now().date()
+    
+    # for vehicle in vehicles:
+    #     schedule_history = vehicle.vehicle_shcedule_history.all().order_by('scheduled_date')
+    #     last_schedule = schedule_history.last()
+    #     second_last_schedule = None
+    #     try:
+    #         second_last_schedule = schedule_history[len(schedule_history)-2]
+    #     except Exception as e:
+    #         pass
+
+    #     maintenance_list.append({
+    #         "vehicle": vehicle,
+    #         "total_services": len(schedule_history),
+    #         "last_schedule": last_schedule,
+    #         "current_date": current_date,
+    #         "km_gap": last_schedule.odo_closing - second_last_schedule.odo_closing if second_last_schedule else None,
+    #     })
+
+    maintenance_list = MaintenanceSchedules.objects.all()
+
+    context = {
+        "menu": "menu-maintenance",
+        "maintenance_list": maintenance_list,
+    }
+    return render(request, 'vms_app/maintenance_list.html', context)
+
+
+def add_maintenance_schedule(request):
+    form = MaintenanceSchedulesForm()
+    if request.method == "POST":
+        form = MaintenanceSchedulesForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('maintenance_schedule_list')
+    context = {
+        "menu": "menu-job-card",
+        "form": form,
+        "form_title": "Add Maintenance Schedule"
+    }
+    return render(request, 'vms_app/forms.html', context)
+
+
+def edit_maintenance_schedule(request, id):
+    maintenance = MaintenanceSchedules.objects.get(pk=id)
+    form = MaintenanceSchedulesForm(instance=maintenance)
+    if request.method == "POST":
+        form = MaintenanceSchedulesForm(request.POST, instance=maintenance)
+        if form.is_valid():
+            form.save()
+            return redirect('maintenance_schedule_list')
+    context = {
+        "menu": "menu-job-card",
+        "form": form,
+        "form_title": "Edit Maintenance Schedule"
+    }
+    return render(request, 'vms_app/forms.html', context)
+
+
+def vehicle_maintenance_schedule_list(request):
+    vehicles = Vehicle.objects.filter(is_active=True)
+    maintenance_list = []
+    current_date = datetime.datetime.now().date()
+    
+    for vehicle in vehicles:
+        schedule_history = vehicle.vehicle_shcedule_history.all().order_by('scheduled_date')
+        last_schedule = schedule_history.last()
+        second_last_schedule = None
+        try:
+            second_last_schedule = schedule_history[len(schedule_history)-2]
+        except Exception as e:
+            pass
+
+        maintenance_list.append({
+            "vehicle": vehicle,
+            "total_services": len(schedule_history),
+            "last_schedule": last_schedule,
+            "current_date": current_date,
+            "km_gap": last_schedule.odo_closing - second_last_schedule.odo_closing if second_last_schedule else None,
+        })
+
+    context = {
+        "menu": "menu-maintenance",
+        "maintenance_list": maintenance_list,
+    }
+    return render(request, 'vms_app/vehicle_maintenance_schedule_list.html', context)
+
+
+def vehicle_maintenance_list(request, id):
+    vehicle = Vehicle.objects.get(id=id)
+    maintenance_list = vehicle.vehicle_shcedule_history.all().order_by('scheduled_date')
+    context = {
+        "menu": "menu-maintenance",
+        "vehicle": vehicle,
+        "maintenance_list": maintenance_list,
+    }
+    return render(request, 'vms_app/maintenance_list.html', context)

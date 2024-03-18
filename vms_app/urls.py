@@ -90,7 +90,14 @@ urlpatterns = [
     path('start-job-card/<int:id>/', views.start_job_card, name="start_job_card"),
     path('end-job-card/<int:id>/', views.end_job_card, name="end_job_card"),
     path('vehicle-job-history/', views.vehicle_job_history, name="vehicle_job_history"),
-    path('vehicle-maintanence-view/<int:id>/', views.vehicle_maintanence_view, name="vehicle_maintanence_view"),
+    path('vehicle-maintanence-view/<int:id>/', views.vehicle_job_view, name="vehicle_job_view"),
+    
+    # Maintenance Schedule Urls
+    path('maintenance-schedule-list/', views.maintenance_schedule_list, name="maintenance_schedule_list"),
+    path('add-maintenance-schedule/', views.add_maintenance_schedule, name="add_maintenance_schedule"),
+    path('edit-maintenance-schedule/<int:id>/', views.edit_maintenance_schedule, name="edit_maintenance_schedule"),
+    path('vehicle-maintenance-schedule-list/', views.vehicle_maintenance_schedule_list, name="vehicle_maintenance_schedule_list"),
+    path('vehicle-maintenance-list/<int:id>/', views.vehicle_maintenance_list, name="vehicle_maintenance_list"),
 
     # dummy trials
     path('testingnew/', views.testing_new, name='testing_new'),

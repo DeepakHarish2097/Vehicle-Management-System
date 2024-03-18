@@ -46,7 +46,7 @@ class RouteForm(forms.ModelForm):
 class EmployeeRegistrationForm(UserCreationForm):
     class Meta:
         model = Employee
-        fields = ['employee_id', 'name', 'password1', 'password2', 'contact', 'address', 'remark']
+        fields = ['employee_id', 'name', 'password1', 'password2', 'is_superuser', 'is_zonal_manager', 'contact', 'address', 'remark']
 
     def __init__(self, *args, **kwargs):
         super(EmployeeRegistrationForm, self).__init__(*args, **kwargs)
@@ -135,7 +135,29 @@ class FuelMasterForm(forms.ModelForm):
 
 
 class JobCardForm(forms.ModelForm):
-    
     class Meta:
         model = JobCard
-        fields = ('vehicle', 'workshop', 'work', 'spares', 'cost', 'mechanics', 'driver', 'remark')
+        fields = ('vehicle', 'workshop', 'work', 'zonal_manager_remark')
+    
+    def __init__(self, *args, **kwargs):
+        super(JobCardForm, self).__init__(*args, **kwargs)
+        self.fields['zonal_manager_remark'].widget.attrs.update({'rows': '3'})
+
+
+class EndJobCardForm(forms.ModelForm):
+    class Meta:
+        model = JobCard
+        fields = ('spares', 'cost', 'remark')
+
+    def __init__(self, *args, **kwargs):
+        super(EndJobCardForm, self).__init__(*args, **kwargs)
+        self.fields['remark'].widget.attrs.update({'rows': '3'})
+
+
+class MaintenanceSchedulesForm(forms.ModelForm):
+    class Meta:
+        model = MaintenanceSchedules
+        fields = "__all__"
+        widgets = {
+            'scheduled_date': DateInput(attrs={'type': 'date'}),
+        }

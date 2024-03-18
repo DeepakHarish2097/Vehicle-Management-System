@@ -28,6 +28,8 @@ class Employee(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=True)
     is_superuser = models.BooleanField(default=False)
+    is_zonal_manager = models.BooleanField(default=False)
+    is_mechanic = models.BooleanField(default=False)
     contact = models.CharField(max_length=255)
     address = models.TextField()
     remark = models.TextField(null=True, blank=True)
@@ -392,7 +394,6 @@ class MaintenanceSchedules(models.Model):
     user display table should have only pending status. The admin can see get all queryset
     The display table should have two colors to discriminate overdue and normal
     By clicking the vehicle in table should lead to schedule history of the vehicle.
-    Thats all for now
     '''
     service_choices = [('SS1 WITH ENGINE OIL & FILTER', 'SS1 WITH ENGINE OIL & FILTER'),
                         ('SS Gen WITHOUT ENGINE OIL & FILTER', 'SS Gen WITHOUT ENGINE OIL & FILTER'),
@@ -416,9 +417,11 @@ class JobCard(models.Model):
     work_start_at = models.DateTimeField(null=True, blank=True)
     work_closed_at = models.DateTimeField(null=True, blank=True)
     work = models.CharField(max_length=250, blank=True, null=True)
+    zonal_manager_remark = models.TextField(null=True, blank=True)
     spares = models.CharField(max_length=500, blank=True, null=True)
     cost = models.FloatField(null=True, blank=True)
     mechanics = models.CharField(max_length=500, blank=True, null=True)
     driver = models.CharField(max_length=500, blank=True, null=True)
-    remark = models.CharField(max_length=500, blank=True, null=True)
+    remark = models.TextField(null=True, blank=True)
+    status = models.CharField(max_length=50, choices= [('Assigned', 'Assigned'), ('Working', 'Working'), ('Completed', 'Completed')], default="Assigned")
     

@@ -122,11 +122,16 @@
                         <div data-i18n="Fuel Log">Fuel Log</div>
                     </a>
                 </li>
-                </li>
                 <li class="menu-item" id="menu-job-card">
                     <a href="{% url "job_card_list" %}" class="menu-link">
                         <i class='menu-icon tf-icons bx bxs-car-garage'></i>
                         <div data-i18n="Job Card">Job Card</div>
+                    </a>
+                </li>
+                <li class="menu-item" id="menu-maintenance">
+                    <a href="{% url 'maintenance_schedule_list' %}" class="menu-link">
+                        <i class='menu-icon tf-icons bx bxs-wrench'></i>
+                        <div data-i18n="Maintenance">Maintenance</div>
                     </a>
                 </li>
             </ul>
