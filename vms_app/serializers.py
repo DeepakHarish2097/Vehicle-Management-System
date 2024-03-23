@@ -55,3 +55,6 @@ class TripHistorySerializer(serializers.ModelSerializer):
     class Meta: 
         model = TripHistory
         fields = '__all__'
+
+
+#Testing git push from pycharm
