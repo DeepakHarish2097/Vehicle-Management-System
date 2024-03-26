@@ -73,7 +73,8 @@ class Ward(models.Model):
 class Route(models.Model):
     zone = models.ForeignKey(Zone, related_name='zone_routes_set', on_delete=models.PROTECT)
     ward = models.ForeignKey(Ward, related_name='ward_routes_set', on_delete=models.PROTECT)
-    street = models.CharField(max_length=500)
+    route = models.CharField(max_length=500)
+    starting_point = models.CharField(max_length=250, default=None, null=True, blank=True)
     km_estimation = models.IntegerField(null=True, blank=True, default=50)
     time_estimation = models.IntegerField(default=100, null=True, blank=True)
     is_active = models.BooleanField(default=True)
@@ -94,14 +95,22 @@ class Route(models.Model):
 
 
 class Vehicle(models.Model):
-    vehicle_number = models.CharField(max_length=100, unique=True)
+    vehicle_number = models.CharField(max_length=100, unique=True) #register number
     is_active = models.BooleanField(default=True)
     is_working = models.BooleanField(default=False)
+    is_spare = models.BooleanField(default=False)
     supervisor = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='vehicle_supervised_by', limit_choices_to={'is_active': True})
+    current_route = models.ForeignKey(Route, related_name='routesofvehicle', on_delete=models.PROTECT, null=True, blank=True)
+    zone = models.ForeignKey(Zone, related_name='zone_vehicles_set',
+                             on_delete=models.PROTECT, null=True, blank=True)
+    workshop = models.ForeignKey(Workshop, related_name='workshop_vehicles_set',
+                                 on_delete=models.PROTECT, null=True, blank=True)
+
     load_estimation = models.IntegerField(default=1000)  # in kg
     remark = models.TextField(null=True, blank=True)
 
+    #object log
     created_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='vehicle_created_by')
     created_on = models.DateTimeField(auto_now_add=True)
@@ -110,23 +119,25 @@ class Vehicle(models.Model):
     updated_on = models.DateTimeField(auto_now=True)
 
     
-    zone = models.ForeignKey(Zone, related_name='zone_vehicles_set',
-                             on_delete=models.PROTECT, null=True, blank=True)
-    workshop = models.ForeignKey(Workshop, related_name='workshop_vehicles_set',
-                                 on_delete=models.PROTECT, null=True, blank=True)
 
     # vehicle RTO details
-    register_number = models.CharField(max_length=50, null=True, blank=True, unique=True)
+
+
+    def __str__(self) -> str:
+        return self.vehicle_number+str(self.supervisor)
+
+class Vehicles_RTO_details(models.Model):
+    vehicle = models.OneToOneField(Vehicle, on_delete=models.CASCADE, primary_key=True)
     chassis_number = models.CharField(max_length=50, null=True, blank=True)
     vehicle_model = models.CharField(max_length=50, null=True, blank=True)
     vehicle_type = models.CharField(max_length=50, null=True, blank=True)
     engine_number = models.CharField(max_length=50, null=True, blank=True)
     fc_date = models.DateField(null=True, blank=True)
     insurance = models.DateField(null=True, blank=True)
-    puc = models.DateField(null=True, blank=True)  # pollution under control certificate expiry date
-    
-    def __str__(self) -> str:
-        return self.vehicle_number+str(self.supervisor)
+    puc = models.DateField(null=True, blank=True)
+
+    def __str__(self):
+        return str(self.vehicle)
 
 
 class Shift(models.Model):
@@ -277,7 +288,14 @@ class TripHistory(models.Model):
     updted_on = models.DateTimeField(auto_now=True)
 
     trip_end_time = models.DateTimeField(null=True, blank=True)
-    trip_load = models.IntegerField(null=True, blank=True)  # in kg
+    wet_waste = models.IntegerField(null=True, blank=True)
+    recyclable_waste = models.IntegerField(null=True, blank=True)
+    dry_waste = models.IntegerField(null=True, blank=True)
+    inerts = models.IntegerField(null=True, blank=True)
+    household_hazard = models.IntegerField(null=True, blank=True)
+    green_garbages = models.IntegerField(null=True, blank=True)
+    other_waste = models.IntegerField(null=True, blank=True)
+    total_trip_load = models.IntegerField(null=True, blank=True)  # in kg
     trip_remark = models.TextField(null=True, blank=True)
     # Method Fields set by overwriting save method
     trip_count = models.IntegerField(default=0) # method field have to be increased +1 in backend
@@ -297,11 +315,20 @@ class TripHistory(models.Model):
 
 class TransferRegister(models.Model):
     vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT)
-    transfer_date = models.DateField()
+    request_date = models.DateField()
     from_zone = models.ForeignKey(Zone, related_name='from_zones_tl', on_delete=models.PROTECT)
     to_zone = models.ForeignKey(Zone, related_name='to_zones_tl', on_delete=models.PROTECT)
-    requested_by = models.ForeignKey(Employee, on_delete=models.PROTECT)
+    requested_by = models.ForeignKey(Employee, related_name='emp_requests_set', on_delete=models.PROTECT)
     reason = models.TextField()
+
+    approved_date = models.DateField(null=True, blank=True, default=None)
+    approved_by = models.ForeignKey(Employee, related_name='emp_responds', on_delete=models.PROTECT,
+                                    null=True, blank=True)
+    status = models.CharField(max_length=100, choices=[
+        ('approved', 'approved'), ('hold', 'hold'), ('rejected','rejected')
+    ])
+    # approver remark
+    remark = models.CharField(max_length=250, null=True, blank=True)
     log_no = models.PositiveIntegerField(null=True, blank=True)
 
     def __str__(self):

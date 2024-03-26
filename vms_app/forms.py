@@ -40,7 +40,7 @@ class WardForm(forms.ModelForm):
 class RouteForm(forms.ModelForm):
     class Meta:
         model = Route
-        fields = ("zone", "ward", "street", "supervisor", "time_estimation", "km_estimation")
+        fields = ("zone", "ward", "route", "supervisor", "time_estimation", "km_estimation")
 
 
 class EmployeeRegistrationForm(UserCreationForm):
@@ -79,7 +79,7 @@ class ShiftStartForm(forms.ModelForm):
 class RotateTripForm(forms.ModelForm):
     class Meta:
         model = TripHistory
-        fields = ['trip_load', 'trip_remark']
+        fields = ['total_trip_load', 'trip_remark']
 
 class ShiftEndForm(forms.Form):
     trip_load = forms.IntegerField() 
@@ -121,7 +121,7 @@ class WorkshopForm(forms.ModelForm):
 class TripHistoryForm(forms.ModelForm):
     class Meta:
         model = TripHistory
-        fields = ('trip_load', 'trip_remark')
+        fields = ('total_trip_load', 'trip_remark')
 
 
 class FuelMasterForm(forms.ModelForm):
