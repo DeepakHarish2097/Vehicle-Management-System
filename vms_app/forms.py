@@ -79,7 +79,7 @@ class ShiftStartForm(forms.ModelForm):
 class RotateTripForm(forms.ModelForm):
     class Meta:
         model = TripHistory
-        fields = ['total_trip_load', 'trip_remark']
+        fields = ['trip_remark']
 
 class ShiftEndForm(forms.Form):
     trip_load = forms.IntegerField() 
@@ -121,7 +121,7 @@ class WorkshopForm(forms.ModelForm):
 class TripHistoryForm(forms.ModelForm):
     class Meta:
         model = TripHistory
-        fields = ('total_trip_load', 'trip_remark')
+        fields = ('trip_remark',)
 
 
 class FuelMasterForm(forms.ModelForm):
